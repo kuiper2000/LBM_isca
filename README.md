@@ -2,6 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24084237.svg)](https://doi.org/10.5281/zenodo.24084237)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1PEQdTSNQfhj1O-UJGLtZP0O8mxyxIDK2?usp=sharing)
 
 A **Linear Baroclinic Model** whose dynamical core is a **linearisation of the
 Isca / GFDL `atmos_spectral` primitive equations**.
@@ -67,6 +68,23 @@ differences:
 3. **Moisture** — virtual temperature in the PGF and geopotential, and a
    prognostic humidity perturbation.
 4. **Time filter** — a genuine Robert–Asselin filter rather than the DADVNC shim.
+
+## Run in the browser (Google Colab)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1PEQdTSNQfhj1O-UJGLtZP0O8mxyxIDK2?usp=sharing)
+
+The quickest way to try LBM_isca — no local install, and a free CUDA GPU (the
+CuPy backend is selected automatically when a GPU runtime is available). The
+notebook:
+
+1. clones this repository,
+2. runs the **solid-body-rotation** example (stationary Rossby-wave train),
+3. downloads the realistic basic state and MJO forcing from Zenodo, and
+4. runs the **realistic NCEP JFM 1979** experiment, including an animated
+   upper-level streamfunction response to MJO phase-1 heating.
+
+Open the badge above, then *Runtime → Run all* (pick a GPU runtime under
+*Runtime → Change runtime type* for the fastest run).
 
 ## Install
 
@@ -181,6 +199,9 @@ experiments; each differs only in its **basic state**:
 2. `example_2_solidbody.ipynb` — Rossby-wave train on a solid-body-rotation state
 3. `example_3_realistic.ipynb` — MJO teleconnection on the NCEP JFM 1979 state
    (needs the input files above)
+
+You can run examples 2 and 3 with zero setup (and a free GPU) in
+[Google Colab](https://colab.research.google.com/drive/1PEQdTSNQfhj1O-UJGLtZP0O8mxyxIDK2?usp=sharing).
 
 ## License
 
