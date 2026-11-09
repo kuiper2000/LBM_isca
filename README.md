@@ -1,10 +1,7 @@
 # LBM_isca
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
-
-> **DOI badge:** replace `10.5281/zenodo.XXXXXXX` with the concept DOI Zenodo
-> mints after the first GitHub release is archived (see **Citation** below).
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24084237.svg)](https://doi.org/10.5281/zenodo.24084237)
 
 A **Linear Baroclinic Model** whose dynamical core is a **linearisation of the
 Isca / GFDL `atmos_spectral` primitive equations**.
@@ -186,11 +183,12 @@ permission-restricted Watanabe–Kimoto `ln_solver`.
 
 If you use LBM_isca, please cite the archived release. The citation metadata
 live in [`CITATION.cff`](CITATION.cff); GitHub shows a ready-made citation via
-*"Cite this repository"*. Once the repository is linked to Zenodo and a release
-is archived, cite the minted DOI (replace the placeholder in the badge above and
-here):
+*"Cite this repository"*. The archive is on Zenodo:
+
+- **Concept DOI** (always the latest version): [10.5281/zenodo.24084237](https://doi.org/10.5281/zenodo.24084237)
+- **This release (v0.1.0):** [10.5281/zenodo.24084238](https://doi.org/10.5281/zenodo.24084238)
 
 ```
 kuiper2000 (2026). LBM_isca: a Linear Baroclinic Model on the Isca/GFDL
-spectral core (v0.1.0). Zenodo. https://doi.org/10.5281/zenodo.XXXXXXX
+spectral core (v0.1.0). Zenodo. https://doi.org/10.5281/zenodo.24084238
 ```

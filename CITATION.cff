@@ -13,8 +13,16 @@ type: software
 authors:
   - name: "kuiper2000"
 version: "0.1.0"
+doi: 10.5281/zenodo.24084238
 license: GPL-3.0-or-later
 repository-code: "https://github.com/kuiper2000/LBM_isca"
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.24084237
+    description: "Concept DOI (all versions)"
+  - type: doi
+    value: 10.5281/zenodo.24084238
+    description: "Version DOI (v0.1.0)"
 keywords:
   - linear baroclinic model
   - atmospheric dynamics
