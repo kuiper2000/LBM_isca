@@ -1,0 +1,56 @@
+{
+  "experiment": "Gill, equatorial Gaussian heating 1 K/day, resting isothermal 250 K, Isca core T42L20, day 6, sigma~0.85",
+  "analytic_ratio_LK_over_LR": 3.0,
+  "cpu": {
+    "kelvin_peak_lon_offset_deg": 42.1875,
+    "kelvin_peak_u_ms": -0.5286720150965126,
+    "rossby_peak_lon_offset_deg": -16.875,
+    "rossby_peak_u_ms": 1.0353251982927991,
+    "L_K_kelvin_efold_km": 14114.396173583584,
+    "L_K_fit_r2": 0.9949553678674494,
+    "L_R_rossby_efold_km": 3632.343572635994,
+    "L_R_fit_r2": 0.9888047670083521,
+    "ratio_LK_over_LR": 3.885754717674121
+  },
+  "gpu": {
+    "kelvin_peak_lon_offset_deg": 42.1875,
+    "kelvin_peak_u_ms": -0.5286720150964476,
+    "rossby_peak_lon_offset_deg": -16.875,
+    "rossby_peak_u_ms": 1.0353251982927567,
+    "L_K_kelvin_efold_km": 14114.396173571744,
+    "L_K_fit_r2": 0.9949553678673951,
+    "L_R_rossby_efold_km": 3632.3435726350504,
+    "L_R_fit_r2": 0.9888047670083498,
+    "ratio_LK_over_LR": 3.8857547176718708
+  },
+  "cpu_gpu_parity": {
+    "psi": {
+      "rel_rms": 5.492256939843547e-13,
+      "max_abs_diff": 3.969762474298477e-07
+    },
+    "chi": {
+      "rel_rms": 9.126027812578551e-13,
+      "max_abs_diff": 5.267102096695453e-07
+    },
+    "u": {
+      "rel_rms": 1.1369953660562117e-12,
+      "max_abs_diff": 6.517859169052898e-13
+    },
+    "v": {
+      "rel_rms": 5.52431088245437e-12,
+      "max_abs_diff": 6.446562034190251e-13
+    },
+    "t": {
+      "rel_rms": 8.132283384934108e-13,
+      "max_abs_diff": 2.577148563998044e-13
+    },
+    "z": {
+      "rel_rms": 8.571936526371734e-13,
+      "max_abs_diff": 2.049649339141979e-11
+    },
+    "w": {
+      "rel_rms": 6.805197561842303e-11,
+      "max_abs_diff": 1.4868672095803159e-15
+    }
+  }
+}

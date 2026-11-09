@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "LBM_isca: a Linear Baroclinic Model on the Isca/GFDL spectral core"
+abstract: >-
+  LBM_isca is a moist, dynamics-only Linear Baroclinic Model whose dynamical
+  core is a linearisation of the Isca / GFDL atmos_spectral primitive
+  equations (Simmons-Burridge vertical differencing, pure-sigma coordinate,
+  semi-implicit leapfrog with a Robert-Asselin filter), at T42 L20 on a numpy
+  (CPU) or CuPy (CUDA GPU) backend. Because it is re-derived from the GPLv3
+  Isca sources rather than from the proprietary Watanabe-Kimoto ln_solver, it
+  can be distributed freely under the GPL.
+type: software
+authors:
+  - name: "kuiper2000"
+version: "0.1.0"
+license: GPL-3.0-or-later
+repository-code: "https://github.com/kuiper2000/LBM_isca"
+keywords:
+  - linear baroclinic model
+  - atmospheric dynamics
+  - spectral primitive equations
+  - teleconnections
+  - Isca
+  - GFDL
