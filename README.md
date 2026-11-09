@@ -80,25 +80,34 @@ pip install cupy-cuda12x         # optional, for the GPU backend (CUDA 12.x)
 
 The idealised experiments (Gill, solid-body rotation — see `examples/`) build
 their basic states analytically and need **no external files**. The *realistic*
-experiment needs two binary inputs that are **not shipped in this repository**
-(they are large and are maintained with the sibling `LBM_python_GPU` package):
+experiment uses two binary inputs that are **archived on Zenodo**
+([DOI 10.5281/zenodo.24086134](https://doi.org/10.5281/zenodo.24086134)), not
+committed to this repository:
 
 | file | ~size | what it is |
 |---|---|---|
 | `bs.1979.bin`   | 11 MB | NCEP pressure-level basic state (JFM 1979) |
 | `frc.phase1.bin`| 46 MB | MJO phase-1 time-varying heating |
 
-Place them anywhere and point `--basic-state` / `--mjo-forcing` (or the
-`DATA` path in `examples/example_3_realistic.ipynb`) at them. The loaders accept
-any Fortran-sequential NCEP file of the same layout, so you can substitute your
-own basic state / forcing.
+`examples/example_3_realistic.ipynb` downloads them into `data/` from Zenodo on
+first run (then caches them). To fetch them manually:
+
+```bash
+mkdir -p data && cd data
+curl -LO "https://zenodo.org/records/24086134/files/bs.1979.bin?download=1"
+curl -LO "https://zenodo.org/records/24086134/files/frc.phase1.bin?download=1"
+```
+
+From the command line, point `--basic-state` / `--mjo-forcing` at them. The
+loaders accept any Fortran-sequential NCEP file of the same layout, so you can
+substitute your own basic state / forcing — see [`data/README.md`](data/README.md).
 
 ## Quick start
 
 ```bash
 python run_lbm.py \
-    --basic-state ../LBM_python_GPU/bs.1979.bin \
-    --mjo-forcing ../LBM_python_GPU/frc.phase1.bin \
+    --basic-state data/bs.1979.bin \
+    --mjo-forcing data/frc.phase1.bin \
     --days 35 --out out/isca.1979.phase1 --device auto
 ```
 
@@ -112,9 +121,9 @@ from lbm_isca.forcing import MJOForcing
 from lbm_isca.output import GradsWriter
 
 sp, vg = Spectral(), VerticalGrid()
-bs = load_basic_state("../LBM_python_GPU/bs.1979.bin", sp, vg)
+bs = load_basic_state("data/bs.1979.bin", sp, vg)
 model = LBM(bs, sp, vg, Config(ndays=35))
-model.run(mjo_forcing=MJOForcing("../LBM_python_GPU/frc.phase1.bin"),
+model.run(mjo_forcing=MJOForcing("data/frc.phase1.bin"),
           writer=GradsWriter("out/isca.grd", sp, vg))
 u200 = model.ga.u[:, :, 12]        # response at sigma ~ 0.175
 ```

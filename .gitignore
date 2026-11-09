@@ -4,7 +4,9 @@ out/
 *.ctl
 *.nc
 
-# --- large binary inputs (fetched separately; see README "Input data") -------
+# --- large binary inputs ------------------------------------------------------
+# Input data are archived on Zenodo (not in git); example_3 downloads them into
+# data/ on first run. See README "Input data" / data/README.md.
 *.bin
 
 # --- python / jupyter cruft --------------------------------------------------
