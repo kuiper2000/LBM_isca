@@ -80,7 +80,7 @@ notebook:
 1. clones this repository,
 2. runs the **solid-body-rotation** example (stationary Rossby-wave train),
 3. downloads the realistic basic state and MJO forcing from Zenodo, and
-4. runs the **realistic NCEP JFM 1979** experiment, including an animated
+4. runs the **realistic ERA5 JFM 1979** experiment, including an animated
    upper-level streamfunction response to MJO phase-1 heating.
 
 Open the badge above, then *Runtime → Run all* (pick a GPU runtime under
@@ -104,7 +104,7 @@ committed to this repository:
 
 | file | ~size | what it is |
 |---|---|---|
-| `bs.1979.bin`   | 11 MB | NCEP pressure-level basic state (JFM 1979) |
+| `bs.1979.bin`   | 11 MB | ERA5 pressure-level basic state (JFM 1979) |
 | `frc.phase1.bin`| 46 MB | MJO phase-1 time-varying heating |
 
 `examples/example_3_realistic.ipynb` downloads them into `data/` from Zenodo on
@@ -117,7 +117,7 @@ curl -LO "https://zenodo.org/records/24086134/files/frc.phase1.bin?download=1"
 ```
 
 From the command line, point `--basic-state` / `--mjo-forcing` at them. The
-loaders accept any Fortran-sequential NCEP file of the same layout, so you can
+loaders accept any Fortran-sequential file of the same 17-level layout, so you can
 substitute your own basic state / forcing — see [`data/README.md`](data/README.md).
 
 ## Quick start
@@ -156,7 +156,7 @@ lbm_isca/dynamics.py    linearised Isca tendencies (new)
 lbm_isca/integrator.py  semi-implicit leapfrog + damping (shared)
 lbm_isca/state.py       grid state, grid<->spectral, Robert-Asselin filter
 lbm_isca/model.py       configuration and the time loop
-lbm_isca/basicstate.py  NCEP p-level -> sigma basic state (shared)
+lbm_isca/basicstate.py  pressure-level -> sigma basic state (shared)
 lbm_isca/forcing.py     steady and MJO forcing readers (shared)
 lbm_isca/output.py      GrADS / netCDF writers (shared)
 run_lbm.py              command-line driver
@@ -197,7 +197,7 @@ experiments; each differs only in its **basic state**:
 
 1. `example_1_gill.ipynb` — Gill response on a resting isothermal state
 2. `example_2_solidbody.ipynb` — Rossby-wave train on a solid-body-rotation state
-3. `example_3_realistic.ipynb` — MJO teleconnection on the NCEP JFM 1979 state
+3. `example_3_realistic.ipynb` — MJO teleconnection on the ERA5 JFM 1979 state
    (needs the input files above)
 
 You can run examples 2 and 3 with zero setup (and a free GPU) in
