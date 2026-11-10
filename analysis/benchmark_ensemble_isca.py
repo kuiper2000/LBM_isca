@@ -31,9 +31,9 @@ import matplotlib.pyplot as plt
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
 
-from lbm_isca import Config, LBM, Spectral, VerticalGrid          # noqa: E402
-from lbm_isca.backend import asnumpy                              # noqa: E402
-from lbm_isca.ensemble import (BatchedSpectral, EnsembleForcing,  # noqa: E402
+from pylbm_isca import Config, LBM, Spectral, VerticalGrid          # noqa: E402
+from pylbm_isca.backend import asnumpy                              # noqa: E402
+from pylbm_isca.ensemble import (BatchedSpectral, EnsembleForcing,  # noqa: E402
                                build_heating_sweep, make_ensemble_model)
 
 try:

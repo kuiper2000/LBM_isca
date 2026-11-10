@@ -1,4 +1,4 @@
-# Copyright (C) 2026  LBM_isca authors.  GPLv3 (or later).
+# Copyright (C) 2026  PyLBM-Isca authors.  GPLv3 (or later).
 """Physical validation of the linearised Isca-core dynamics.
 
 The key tests are (1) a resting isothermal basic state with no perturbation and
@@ -17,8 +17,8 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from lbm_isca import Config, LBM, Spectral, VerticalGrid      # noqa: E402
-from lbm_isca.forcing import SteadyForcing                    # noqa: E402
+from pylbm_isca import Config, LBM, Spectral, VerticalGrid      # noqa: E402
+from pylbm_isca.forcing import SteadyForcing                    # noqa: E402
 
 _CACHE = {}
 

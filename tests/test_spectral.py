@@ -12,7 +12,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from lbm_isca.spectral import Spectral  # noqa: E402
+from pylbm_isca.spectral import Spectral  # noqa: E402
 
 
 def _sp():

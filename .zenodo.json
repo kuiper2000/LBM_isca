@@ -1,11 +1,16 @@
 {
-  "title": "LBM_isca: a Linear Baroclinic Model on the Isca/GFDL spectral core",
-  "description": "<p>LBM_isca is a moist, dynamics-only Linear Baroclinic Model whose dynamical core is a linearisation of the Isca / GFDL <code>atmos_spectral</code> primitive equations (Simmons&ndash;Burridge vertical differencing, pure-sigma coordinate, semi-implicit leapfrog with a Robert&ndash;Asselin filter), at T42 L20 on a numpy (CPU) or CuPy (CUDA GPU) backend. Because it is re-derived from the GPLv3 Isca sources rather than from the proprietary Watanabe&ndash;Kimoto <code>ln_solver</code>, it can be distributed freely under the GPL.</p>",
+  "title": "PyLBM-Isca: a Linear Baroclinic Model on the Isca/GFDL spectral core",
+  "version": "1.0.0",
+  "description": "<p>PyLBM-Isca is a moist, dynamics-only Linear Baroclinic Model whose dynamical core is a linearisation of the Isca / GFDL <code>atmos_spectral</code> primitive equations (Simmons&ndash;Burridge vertical differencing, pure-sigma coordinate, semi-implicit leapfrog with a Robert&ndash;Asselin filter), at T42 L20 on a numpy (CPU) or CuPy (CUDA GPU) backend. It is newly written code that follows the structure of the Watanabe&ndash;Kimoto linear baroclinic model while deriving its dynamical core from the GPLv3 Isca sources; it shares no code with the permission-restricted Watanabe&ndash;Kimoto <code>ln_solver</code>, so it can be distributed freely under the GPL.</p>",
   "upload_type": "software",
   "access_right": "open",
   "license": "GPL-3.0-or-later",
   "creators": [
-    { "name": "kuiper2000" }
+    {
+      "name": "Tseng, Kai-Chih",
+      "affiliation": "Department of Atmospheric Sciences, National Taiwan University",
+      "orcid": "0000-0002-4789-705X"
+    }
   ],
   "keywords": [
     "linear baroclinic model",

@@ -27,7 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ISCA_ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ISCA_ROOT)
 
-from lbm_isca import Config, LBM, Spectral, VerticalGrid, gpu_available  # noqa: E402
+from pylbm_isca import Config, LBM, Spectral, VerticalGrid, gpu_available  # noqa: E402
 
 try:
     import cupy

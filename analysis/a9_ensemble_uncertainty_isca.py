@@ -23,7 +23,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 ISCA_ROOT = os.path.dirname(HERE)                       # .../LBM_isca
 REPO_ROOT = os.path.dirname(ISCA_ROOT)
-DATA_ROOT = os.path.join(REPO_ROOT, "LBM_python_GPU")   # shared input data
+DATA_ROOT = os.path.join(ISCA_ROOT, "data")            # realistic-case inputs
 MANU = os.path.join(REPO_ROOT, "LBM_GPU_GMD")           # manuscript tree
 sys.path.insert(0, ISCA_ROOT)
 
@@ -33,12 +33,12 @@ import matplotlib.pyplot as plt                               # noqa: E402
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
 
-from lbm_isca import Config, Spectral, VerticalGrid, IMAX, JMAX, NMAX  # noqa: E402
-from lbm_isca.backend import asnumpy                               # noqa: E402
-from lbm_isca.basicstate import load_basic_state                   # noqa: E402
-from lbm_isca.forcing import MJOForcing                            # noqa: E402
-from lbm_isca.ensemble import EnsembleForcing, make_ensemble_model # noqa: E402
-from lbm_isca.regrid import detect_grid, regrid_basic_state        # noqa: E402
+from pylbm_isca import Config, Spectral, VerticalGrid, IMAX, JMAX, NMAX  # noqa: E402
+from pylbm_isca.backend import asnumpy                               # noqa: E402
+from pylbm_isca.basicstate import load_basic_state                   # noqa: E402
+from pylbm_isca.forcing import MJOForcing                            # noqa: E402
+from pylbm_isca.ensemble import EnsembleForcing, make_ensemble_model # noqa: E402
+from pylbm_isca.regrid import detect_grid, regrid_basic_state        # noqa: E402
 
 FIGDIR = os.path.join(MANU, "figures")
 ANADIR = os.path.join(MANU, "analysis")
@@ -73,8 +73,8 @@ def representative_heating(device):
 
 
 def _ndays(path, nlon, nlat):
-    from lbm_isca.forcing import read_fortran_records
-    from lbm_isca.constants import KMAX
+    from pylbm_isca.forcing import read_fortran_records
+    from pylbm_isca.constants import KMAX
     rec = read_fortran_records(path, nlon, nlat)
     return rec.shape[0] // KMAX
 

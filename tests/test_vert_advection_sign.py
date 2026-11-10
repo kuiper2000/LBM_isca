@@ -21,8 +21,8 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
-from lbm_isca import VerticalGrid                          # noqa: E402
-from lbm_isca.dynamics import _vert_advect                 # noqa: E402
+from pylbm_isca import VerticalGrid                          # noqa: E402
+from pylbm_isca.dynamics import _vert_advect                 # noqa: E402
 
 
 def test_vert_advect_sign():

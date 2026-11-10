@@ -1,14 +1,14 @@
-"""The LBM_isca driver: configuration, the time loop and the history.
+"""The PyLBM-Isca driver: configuration, the time loop and the history.
 
 Semi-implicit leapfrog integration of the linearised Isca/GFDL primitive
 equations, with a genuine Robert-Asselin time filter (Isca ``leapfrog.F90``)
-rather than the DADVNC shim of the Watanabe-Kimoto port.  The namelist-style
+(Robert 1966; Asselin 1972).  The namelist-style
 defaults in :class:`Config` otherwise follow the same T42 L20 configuration so
 the two models are directly comparable.
 
 GPU note
 --------
-The model inherits its array backend from the :class:`~lbm_isca.spectral.Spectral`
+The model inherits its array backend from the :class:`~pylbm_isca.spectral.Spectral`
 object passed in (``self.xp``), so the whole time loop runs on whatever device
 the transforms live on.  The only host traffic is the daily history.
 """
@@ -142,8 +142,8 @@ class LBM:
         Called at the top of the step (before the leapfrog update), so every
         field -- ``psi``, ``chi`` and ``w`` from the tendency computation and
         ``u``, ``v``, ``t``, ``z`` and ``p`` from the state -- is diagnosed
-        consistently from the same time level ``t``, matching the Fortran
-        AHSTIN history sampling.
+        consistently from the same time level ``t``, using a single top-of-step
+        history sample.
         """
         sp, vg = self.sp, self.vg
         d = self.dyn.diag
@@ -162,7 +162,7 @@ class LBM:
         ----------
         mjo_forcing : MJOForcing or None
             Time-varying temperature forcing.  When present it *replaces* the
-            steady temperature forcing, exactly as dterm-2.F:327 does.
+            steady temperature forcing.
         steady_forcing : SteadyForcing or None
             Constant vorticity / divergence / temperature / ln(Ps) forcing.
         writer : object with ``.add(day, fields)`` and ``.close()``
@@ -179,10 +179,10 @@ class LBM:
         out_every = int(round(cfg.out_interval_days * spd))
         day_done = 0
         # History is sampled at the top of the step (all fields at time t, the
-        # pre-update state, matching the Fortran AHSTIN) and trapezoidally
+        # pre-update state) and trapezoidally
         # averaged over each output interval (mean of this step's and the
         # previous step's samples).  This makes the PyLBM daily history use the
-        # same leapfrog sampling point as the Fortran, so the two codes are
+        # same leapfrog sampling point, so the two codes are
         # consistent to round-off in the early response.
         prev_top = None
 

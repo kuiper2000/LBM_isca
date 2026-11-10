@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-# Copyright (C) 2026  LBM_isca authors.  GPLv3 (or later).
-"""Command-line driver for LBM_isca (Isca/GFDL-core Linear Baroclinic Model).
+# Copyright (C) 2026  PyLBM-Isca authors.  GPLv3 (or later).
+"""Command-line driver for PyLBM-Isca (Isca/GFDL-core Linear Baroclinic Model).
 
-Example, reproducing an MJO phase-1 teleconnection experiment on the 1979
-basic state (reusing the inputs shipped with the sibling LBM_python_GPU)::
+Example, reproducing an MJO phase-1 teleconnection experiment on the ERA5
+JFM 1979 basic state (inputs archived on Zenodo; see data/README.md)::
 
     python run_lbm.py \\
-        --basic-state ../LBM_python_GPU/bs.1979.bin \\
-        --mjo-forcing ../LBM_python_GPU/frc.phase1.bin \\
+        --basic-state data/bs.1979.bin \\
+        --mjo-forcing data/frc.phase1.bin \\
         --days 35 --out out/isca.1979.phase1 --device auto
 
-writes ``out/isca.1979.phase1.grd`` + ``.ctl`` (GrADS, gt2gr record order) and,
+writes ``out/isca.1979.phase1.grd`` + ``.ctl`` (GrADS record order) and,
 with ``--netcdf``, ``.nc`` as well.
 """
 
@@ -22,11 +22,11 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from lbm_isca import Config, IMAX, JMAX, NMAX, Spectral, LBM, VerticalGrid  # noqa: E402
-from lbm_isca.basicstate import load_basic_state                 # noqa: E402
-from lbm_isca.forcing import MJOForcing, SteadyForcing, autodetect  # noqa: E402
-from lbm_isca.output import GradsWriter, MultiWriter, NetCDFWriter  # noqa: E402
-from lbm_isca.regrid import (detect_grid, regrid_basic_state,    # noqa: E402
+from pylbm_isca import Config, IMAX, JMAX, NMAX, Spectral, LBM, VerticalGrid  # noqa: E402
+from pylbm_isca.basicstate import load_basic_state                 # noqa: E402
+from pylbm_isca.forcing import MJOForcing, SteadyForcing, autodetect  # noqa: E402
+from pylbm_isca.output import GradsWriter, MultiWriter, NetCDFWriter  # noqa: E402
+from pylbm_isca.regrid import (detect_grid, regrid_basic_state,    # noqa: E402
                              regrid_mjo_forcing, regrid_steady_forcing)
 
 
@@ -38,7 +38,7 @@ def build_parser():
 
     g = p.add_argument_group("input")
     g.add_argument("--basic-state", required=True,
-                   help="NCEP pressure-level basic state, e.g. bs.1979.bin")
+                   help="ERA5 pressure-level basic state, e.g. bs.1979.bin")
     g.add_argument("--kmo", type=int, default=1, help="first month (1-based)")
     g.add_argument("--navg", type=int, default=3, help="months to average")
     g.add_argument("--zonal-mean-bs", action="store_true",
@@ -95,8 +95,8 @@ def main(argv=None):
         return _src_cache[key]
 
     if not args.quiet:
-        from lbm_isca import device_name
-        print(f"LBM_isca  T{sp.nmax} {sp.nlon}x{sp.nlat} L{vg.kmax}  "
+        from pylbm_isca import device_name
+        print(f"PyLBM-Isca  T{sp.nmax} {sp.nlon}x{sp.nlat} L{vg.kmax}  "
               f"backend={device_name(sp.xp)}")
 
     bs_nlon, bs_nlat = detect_grid(args.basic_state)
@@ -141,7 +141,7 @@ def main(argv=None):
 
     os.makedirs(os.path.dirname(os.path.abspath(args.out)) or ".", exist_ok=True)
     writers = [GradsWriter(args.out + ".grd", sp, vg,
-                           title="LBM_isca T42L20 (Isca core)")]
+                           title="PyLBM-Isca T42L20 (Isca core)")]
     if args.netcdf:
         writers.append(NetCDFWriter(args.out + ".nc", sp, vg))
     writer = MultiWriter(*writers)

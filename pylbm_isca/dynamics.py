@@ -1,6 +1,6 @@
-# Copyright (C) 2026  LBM_isca authors
+# Copyright (C) 2026  PyLBM-Isca authors
 #
-# This file is part of LBM_isca and is distributed under the GNU General Public
+# This file is part of PyLBM-Isca and is distributed under the GNU General Public
 # License v3 (or later).  It linearises the Isca / GFDL ``atmos_spectral``
 # primitive equations (github.com/ExeClim/Isca, GPLv3) about a basic state.
 """Linearised Isca/GFDL primitive-equation tendencies (sigma coordinate).
@@ -26,7 +26,7 @@ Physics choices reproduced from Isca (confirmed against the source):
 * Horizontal and vertical advection of *temperature* use the **dry** T
   (spectral_dynamics.F90:890 passes ``tg``), as does tracer advection for q.
 
-Semi-implicit split (see :mod:`lbm_isca.vertical`): the reference
+Semi-implicit split (see :mod:`pylbm_isca.vertical`): the reference
 energy-conversion from divergence is carried as ``+ div @ tmtx.T`` and the
 reference pressure-gradient / continuity coupling through ``gg``; the integrator
 restores the implicit gravity-wave coupling.  The dry geopotential of the

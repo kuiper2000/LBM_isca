@@ -1,17 +1,16 @@
-# Copyright (C) 2026  LBM_isca authors
+# Copyright (C) 2026  PyLBM-Isca authors
 #
-# This file is part of LBM_isca, a Linear Baroclinic Model whose dynamical core
+# This file is part of PyLBM-Isca, a Linear Baroclinic Model whose dynamical core
 # is a linearisation of the Isca / GFDL ``atmos_spectral`` primitive equations.
 #
-# LBM_isca is free software: you can redistribute it and/or modify it under the
+# PyLBM-Isca is free software: you can redistribute it and/or modify it under the
 # terms of the GNU General Public License as published by the Free Software
 # Foundation, either version 3 of the License, or (at your option) any later
 # version.  The physical constants and the Simmons-Burridge discretisation it
 # re-derives come from the GPLv3 Isca sources (github.com/ExeClim/Isca).
 """Physical constants and resolution parameters for the Isca-core LBM.
 
-Unlike :mod:`lbm.constants` (which carried the CCSR/NIES AGCM numbers), the
-values here are GFDL/Isca's, taken from
+The values here are GFDL/Isca's, taken from
 
   src/shared/constants/constants.F90          (ExeClim/Isca)
 
@@ -21,10 +20,9 @@ In Isca these are *namelist-overridable variables*, not Fortran parameters
 Earth defaults.
 
 The horizontal/vertical resolution (T42, 20 pure-sigma levels) and the sigma
-half levels are kept identical to :mod:`lbm.constants` on purpose: this makes
-the Isca-core model directly comparable to the Watanabe-Kimoto port and lets it
-reuse the same NCEP basic-state pipeline (:mod:`lbm_isca.basicstate`) and the
-same GrADS output records.
+half levels follow the Watanabe-Kimoto LBM so the two models are directly
+comparable, and share the same ERA5 basic-state pipeline
+(:mod:`pylbm_isca.basicstate`) and GrADS output records.
 """
 
 import numpy as np
@@ -60,7 +58,7 @@ EPSVT = RVGAS / RDGAS - 1.0      # 0.60781...
 DAYLEN_SEC = 86400.0
 S2D = 86400.0         # seconds per day, used by the forcing / damping scaling
 
-# gt2gr-compatible height-anomaly conversion (output.py); these are output
+# Height-anomaly conversion for the GrADS writer (output.py); these are output
 # constants, not dynamics, so they stay as in the reference writer.
 RHO00 = 1.225
 GRAV_GT2GR = 9.80
@@ -77,7 +75,7 @@ LMAX = NMAX
 MINT = 1
 
 # IJDIM is the unweighted point count used by the reference-temperature mean
-# (see lbm_isca.vertical.compute_tbar); the duplicated wrap-around column means
+# (see pylbm_isca.vertical.compute_tbar); the duplicated wrap-around column means
 # IDIM = IMAX+1.  Carried for exact parity with the reference TBAR.
 IDIM = IMAX + 1
 IJDIM = IDIM * JMAX
@@ -98,8 +96,8 @@ SIGM = np.array([
     0.070, 0.050, 0.040, 0.030, 0.020, 0.000,
 ], dtype=np.float64)
 
-# NCEP 17 pressure levels of the input basic state [hPa].
-PLEV_NCEP17 = np.array([
+# 17 standard ERA5 pressure levels of the input basic state [hPa].
+PLEV17 = np.array([
     1000., 925., 850., 700., 600., 500., 400., 300., 250.,
     200., 150., 100., 70., 50., 30., 20., 10.,
 ], dtype=np.float64)

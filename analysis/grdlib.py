@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Shared helpers for reading GrADS (.grd) output and comparing two runs.
 
-All LBM outputs (Fortran ln_solver via gt2gr, LBM_python_GPU, and LBM_isca)
-share the gt2gr record order and the Fortran-sequential, big-endian, YREV
-layout, so the same reader works for every model and the comparison is
-apples-to-apples.
+All model outputs compared here share the same Fortran-sequential, big-endian,
+YREV GrADS record layout, so the same reader works for every run and the
+comparison is apples-to-apples.
 """
 import numpy as np
 

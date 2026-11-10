@@ -2,12 +2,12 @@
 
 The Fortran carries the perturbation in *grid* space at two time levels
 (``GA`` at t, ``GB`` at t-dt) and converts to spectral coefficients inside
-every step (dstep-2.F:96-150).  We mirror that layout so the time filter and
-the forcing both act where the Fortran applies them.
+every step.  We mirror that layout so the time filter and
+the forcing both act where the reference LBM applies them.
 
 Surface pressure deserves a note.  The prognostic spectral variable is
 ``pi' = ln(ps_bar + ps') - ln(ps_bar)``, i.e. the *exact* logarithm, and the
-inverse is ``ps' = ps_bar*(exp(pi') - 1)`` (dstep-2.F:104 and :146).  The
+inverse is ``ps' = ps_bar*(exp(pi') - 1)``.  The
 usual linearisation ``pi' ~ ps'/ps_bar`` is not what the code does, so we
 keep the exact round trip.
 
@@ -75,11 +75,11 @@ class State:
                      self.t.copy(), self.q.copy(), self.ps.copy(), xp=self.xp)
 
     def lnps_pert(self):
-        """pi' = ln(ps_bar + ps') - ln(ps_bar)   (dstep-2.F:104)."""
+        """pi' = ln(ps_bar + ps') - ln(ps_bar)."""
         return self.xp.log(self.ps_bar + self.ps) - self.lnps_bar
 
     def set_from_lnps(self, pi):
-        """ps' = ps_bar*(exp(pi') - 1)   (dstep-2.F:146)."""
+        """ps' = ps_bar*(exp(pi') - 1)."""
         self.ps = self.ps_bar * (self.xp.exp(pi) - 1.0)
 
     # ------------------------------------------------------------------
@@ -116,9 +116,9 @@ class State:
             X_f(t) = X(t) + gamma * [ X(t-dt) - 2 X(t) + X(t+dt) ]
 
         so that, after the caller sets ``current <- new``, ``self`` is the
-        filtered previous level for the next leapfrog step.  Unlike the DADVNC
-        shim of the Watanabe-Kimoto port, this is the genuine Asselin filter: it
-        sees the t+dt level ``new``.
+        filtered previous level for the next leapfrog step.  This is the genuine
+        Asselin filter (Robert 1966; Asselin 1972): it sees the t+dt level
+        ``new``.
         """
         for name in ("u", "v", "t", "q", "ps"):
             prev = getattr(self, name)

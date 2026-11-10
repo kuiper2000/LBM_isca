@@ -1,17 +1,17 @@
-"""History output: GrADS flat binary (drop-in for ``gt2gr``) and netCDF.
+"""History output: GrADS flat binary and netCDF.
 
-``gt2gr`` (solver/util/gt2gr.f) writes one Fortran sequential record per
+The GrADS writer emits one Fortran sequential record per
 level, big-endian ``real*4``, in the order
 
     psi(20) chi(20) u(20) v(20) w(20) t(20) z(20) ps(1)  = 141 records/time
 
 on the model's north-first grid, which is why the companion ``.ctl`` carries
-``OPTIONS SEQUENTIAL YREV``.  Two details of ``gt2gr`` are reproduced here:
+``OPTIONS SEQUENTIAL YREV``.  Two output conventions:
 
 * ``opl=f`` in SETPAR, so there is **no** sigma -> pressure interpolation and
   the output stays on the 20 sigma levels.  The sample ``.ctl`` files that
   list 1000, 950, ... hPa assume ``opl=t`` and do not apply to this run.
-* ``Z`` gets a surface-pressure term added (gt2gr.f:396-397):
+* ``Z`` gets a surface-pressure term added:
   ``Z_out = Z' + Ps'[hPa]*100/(rho0*g)`` with ``rho0=1.225``, ``g=9.80``.
 """
 
@@ -36,10 +36,10 @@ VAR_INFO = {
 
 
 class GradsWriter:
-    """Writes ``out.grd`` + ``out.ctl`` byte-compatible with ``gt2gr``."""
+    """Writes ``out.grd`` + ``out.ctl`` GrADS flat binary."""
 
     def __init__(self, path, spectral, vertical, ctl_path=None,
-                 apply_gt2gr_z=True, title="LBM T42L20 dry (python)"):
+                 apply_gt2gr_z=True, title="PyLBM-Isca T42L20"):
         self.path = path
         self.ctl_path = ctl_path or (os.path.splitext(path)[0] + ".ctl")
         self.sp, self.vg = spectral, vertical

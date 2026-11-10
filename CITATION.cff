@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it using these metadata."
-title: "LBM_isca: a Linear Baroclinic Model on the Isca/GFDL spectral core"
+title: "PyLBM-Isca: a Linear Baroclinic Model on the Isca/GFDL spectral core"
 abstract: >-
-  LBM_isca is a moist, dynamics-only Linear Baroclinic Model whose dynamical
+  PyLBM-Isca is a moist, dynamics-only Linear Baroclinic Model whose dynamical
   core is a linearisation of the Isca / GFDL atmos_spectral primitive
   equations (Simmons-Burridge vertical differencing, pure-sigma coordinate,
   semi-implicit leapfrog with a Robert-Asselin filter), at T42 L20 on a numpy
@@ -11,18 +11,19 @@ abstract: >-
   can be distributed freely under the GPL.
 type: software
 authors:
-  - name: "kuiper2000"
-version: "0.1.0"
-doi: 10.5281/zenodo.24084238
+  - family-names: "Tseng"
+    given-names: "Kai-Chih"
+    orcid: "https://orcid.org/0000-0002-4789-705X"
+    affiliation: "Department of Atmospheric Sciences, National Taiwan University"
+version: "1.0.0"
+doi: 10.5281/zenodo.24084237
 license: GPL-3.0-or-later
-repository-code: "https://github.com/kuiper2000/LBM_isca"
+repository-code: "https://github.com/kuiper2000/PyLBM-Isca"
 identifiers:
   - type: doi
     value: 10.5281/zenodo.24084237
     description: "Concept DOI (all versions)"
-  - type: doi
-    value: 10.5281/zenodo.24084238
-    description: "Version DOI (v0.1.0)"
+  # Version DOI for v1.0.0 is minted when the v1.0.0 tag is archived on Zenodo.
 keywords:
   - linear baroclinic model
   - atmospheric dynamics

@@ -1,14 +1,15 @@
 """Spherical-harmonic transforms on the T42 Gaussian grid.
 
-This reproduces the conventions of the CCSR/NIES spectral core used by the
-LBM (model/src/util/uspst.F, usphe.F, model/src/dynamics/dvect.F):
+This follows the spectral-transform conventions of the Watanabe-Kimoto LBM,
+implemented from standard references on spherical-harmonic transforms (Bourke
+1972; Swarztrauber 1993):
 
 * Fully normalised associated Legendre functions,
   ``(1/2) * int_{-1}^{1} [P_n^m(mu)]^2 dmu = 1``  (no Condon-Shortley phase).
 * Gaussian weights normalised so that ``sum_j gw_j = 1``, giving the
   discrete orthogonality ``sum_j gw_j P_n^m P_n'^m = delta_{nn'}``.
 * Latitudes ordered **north to south**: ``j=0`` is +87.8638 deg.  This is the
-  model's internal order (uspst.F:291) and the reason every sample GrADS
+  model's internal order and the reason every sample GrADS
   ``.ctl`` in the package carries ``OPTIONS YREV``.
 
 GPU note
@@ -42,7 +43,7 @@ from .constants import ER, IMAX, JMAX, NMAX
 class Spectral:
     """Gaussian grid + spherical-harmonic transform operators."""
 
-    #: True for the ensemble (member-axis) subclass; see lbm.ensemble.
+    #: True for the ensemble (member-axis) subclass; see pylbm_isca.ensemble.
     batched = False
 
     def __init__(self, nlon=IMAX, nlat=JMAX, nmax=NMAX, radius=ER,
@@ -62,13 +63,13 @@ class Spectral:
         coslat = np.sqrt(1.0 - self.mu ** 2)
         self.lon = np.arange(self.nlon) * (2.0 * np.pi / self.nlon)
 
-        # Weight carrying the 1/(a(1-mu^2)) metric factor; this is GWDEL in
-        # dsphe.F:150 and is what makes the vorticity/divergence analysis work.
+        # Weight carrying the 1/(a(1-mu^2)) metric factor; this is what makes
+        # the vorticity/divergence analysis work.
         self.gwdel = self.gw / self.a / (1.0 - self.mu ** 2)
 
         self._build_legendre()             # builds host tables, moves to device
 
-        # Laplacian eigenvalues  -n(n+1)/a^2  (dsetc.F:116-122)
+        # Laplacian eigenvalues  -n(n+1)/a^2
         n = np.arange(self.nmax + 1, dtype=np.float64)
         nn1 = n * (n + 1.0)
         self.nn1 = nn1                                         # host
@@ -92,7 +93,8 @@ class Spectral:
     def _build_legendre(self):
         """Fully normalised P_n^m and H_n^m = (1-mu^2) dP_n^m/dmu.
 
-        Recurrences follow LGNDRE/LGNDRD (uspst.F:141-237).  P is built one
+        Recurrences use the standard fully-normalised Legendre recursion
+        (Belousov 1962; Swarztrauber 1993).  P is built one
         degree beyond the truncation because H_n^m needs P_{n+1}^m.  This is a
         one-time host (numpy) computation; the resulting tables are moved to
         the device at the end.
@@ -206,7 +208,7 @@ class Spectral:
         return xi * f[..., None] if xi.ndim == 3 else xi * f
 
     def hgrad(self, xi):
-        """Physical horizontal gradient of a scalar (HGRAD, dvect.F:205-246).
+        """Physical horizontal gradient of a scalar.
 
         Returns ``(dX/dx, dX/dy)`` in grid space, where
         ``dX/dx = 1/(a cos(phi)) dX/dlam`` and ``dX/dy = (1/a) dX/dphi``.
@@ -223,7 +225,7 @@ class Spectral:
         return self._unpack(gx, sq), self._unpack(gy, sq)
 
     def uv_to_vordiv(self, u, v):
-        """Physical (u, v) -> spectral vorticity and divergence (UV2VDW).
+        """Physical (u, v) -> spectral vorticity and divergence.
 
         zeta = 1/(a(1-mu^2)) dV/dlam - (1/a) dU/dmu,  U = u cos(phi)
         div  = 1/(a(1-mu^2)) dU/dlam + (1/a) dV/dmu,  V = v cos(phi)
@@ -242,7 +244,7 @@ class Spectral:
         return self._unpack(vor, sq), self._unpack(div, sq)
 
     def neg_divergence(self, fx, fy):
-        """-div(F) for a physical vector field (HCONVW, dvect.F:167-201)."""
+        """-div(F) for a physical vector field."""
         vor, div = self.uv_to_vordiv(fx, fy)
         return -div
 

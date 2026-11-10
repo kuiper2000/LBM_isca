@@ -1,4 +1,4 @@
-# LBM_isca
+# PyLBM-Isca
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24084237.svg)](https://doi.org/10.5281/zenodo.24084237)
@@ -7,13 +7,17 @@
 A **Linear Baroclinic Model** whose dynamical core is a **linearisation of the
 Isca / GFDL `atmos_spectral` primitive equations**.
 
-This is a clean-room sibling of `LBM_python_GPU` (the GPU port of the
-Watanabe–Kimoto `ln_solver`). The motivation is **licensing**: the original
-Fortran LBM is not open source — access is by individual permission from the
-authors — so any port of it inherits that restriction. Isca, by contrast, is
-**GPLv3** open source, and its dynamical core is GFDL's spectral transform
-primitive-equation core. By linearising *Isca's* equations instead, LBM_isca
-can be freely distributed under the GPL.
+PyLBM-Isca is newly written code that **follows the structure of** the
+Watanabe–Kimoto linear baroclinic model (a spectral, sigma-coordinate,
+vorticity–divergence, semi-implicit primitive-equation LBM) while deriving its
+dynamical core term by term from the **GPLv3** Isca / GFDL `atmos_spectral`
+sources. The motivation is **licensing**: the Watanabe–Kimoto Fortran LBM is not
+open source — access is by individual permission from the authors — so code
+derived from it inherits that restriction. Isca, by contrast, is GPLv3 open
+source, and its dynamical core is GFDL's spectral-transform primitive-equation
+core. Because PyLBM-Isca shares **no code** with the restricted `ln_solver` and
+derives only from the GPLv3 Isca sources and standard published numerical
+methods, it can be freely distributed under the GPL.
 
 | | |
 |---|---|
@@ -26,29 +30,31 @@ can be freely distributed under the GPL.
 | physics | **none** — dynamics only (no Isca boundary layer / convection / radiation) |
 | licence | **GPLv3** (derived from the GPLv3 Isca sources) |
 
-The only parts that differ from `LBM_python_GPU` are the ones that encode the
-*dynamical core*: the physical constants, the Simmons–Burridge vertical
-operators, the linearised tendencies, and the time filter. The spherical-
-harmonic transforms, the basic-state / forcing / output pipeline and the GPU
-backend are the same Python, so the two models are directly comparable and
-share input and output formats.
+The components that encode the *dynamical core* — the physical constants, the
+Simmons–Burridge vertical operators, the linearised tendencies, and the time
+filter — are linearisations of the GPLv3 Isca sources. The surrounding numerical
+machinery (the spherical-harmonic transforms, the basic-state / forcing / output
+pipeline, and the GPU backend) is written from standard published methods and
+follows the structure of the Watanabe–Kimoto LBM. It uses the same file and grid
+conventions, so the two models are directly comparable and share input and output
+formats, but PyLBM-Isca contains no code from the restricted package.
 
-## Provenance (what was ported, and from where)
+## Provenance (what it is derived from)
 
 Every dynamical term is a linearisation of a specific routine in the GPLv3 Isca
 repository `github.com/ExeClim/Isca`:
 
-| LBM_isca | Isca source |
+| PyLBM-Isca | Isca source |
 |---|---|
 | `constants.py` | `src/shared/constants/constants.F90` (Earth defaults) |
 | `vertical.py`  | `src/atmos_spectral/model/press_and_geopot.F90` (`pressure_variables_3d`, `compute_geopotential`) and `spectral_dynamics.F90:four_in_one` |
 | `dynamics.py`  | `spectral_dynamics.F90` tendency assembly + `four_in_one`; `vert_advection.F90` (SECOND_CENTERED, ADVECTIVE_FORM) |
-| `integrator.py`| `implicit.F90` (per-wavenumber gravity-wave matrix) — reused unchanged from the sibling package |
-| time filter    | `src/atmos_spectral/model/leapfrog.F90` (Robert–Asselin) |
+| `integrator.py`| `implicit.F90` (per-wavenumber gravity-wave matrix); semi-implicit spectral scheme following Bourke (1974) and Hoskins & Simmons (1975) |
+| time filter    | `src/atmos_spectral/model/leapfrog.F90` (Robert–Asselin; Robert 1966, Asselin 1972) |
 
-This is a re-derivation from cited sources, **not** a copy of the proprietary
-`ln_solver`. The shared numerical scaffolding (transforms, damping, I/O) is the
-project's own existing Python.
+This is a re-derivation from the cited GPLv3 Isca sources and standard published
+numerical methods; it contains **no** code from the permission-restricted
+Watanabe–Kimoto `ln_solver`.
 
 ## How it differs from the Watanabe–Kimoto LBM
 
@@ -67,13 +73,13 @@ differences:
    pass `Spectral(radius=6.376e6)` for Isca's own value.)
 3. **Moisture** — virtual temperature in the PGF and geopotential, and a
    prognostic humidity perturbation.
-4. **Time filter** — a genuine Robert–Asselin filter rather than the DADVNC shim.
+4. **Time filter** — a genuine Robert–Asselin filter (Robert 1966; Asselin 1972).
 
 ## Run in the browser (Google Colab)
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1PEQdTSNQfhj1O-UJGLtZP0O8mxyxIDK2?usp=sharing)
 
-The quickest way to try LBM_isca — no local install, and a free CUDA GPU (the
+The quickest way to try PyLBM-Isca — no local install, and a free CUDA GPU (the
 CuPy backend is selected automatically when a GPU runtime is available). The
 notebook:
 
@@ -129,14 +135,14 @@ python run_lbm.py \
     --days 35 --out out/isca.1979.phase1 --device auto
 ```
 
-writes `out/isca.1979.phase1.grd` + `.ctl` (GrADS, gt2gr record order:
+writes `out/isca.1979.phase1.grd` + `.ctl` (GrADS, record order:
 `psi, chi, u, v, w, t, z, ps`) and, with `--netcdf`, `.nc`.
 
 ```python
-from lbm_isca import Spectral, VerticalGrid, LBM, Config
-from lbm_isca.basicstate import load_basic_state
-from lbm_isca.forcing import MJOForcing
-from lbm_isca.output import GradsWriter
+from pylbm_isca import Spectral, VerticalGrid, LBM, Config
+from pylbm_isca.basicstate import load_basic_state
+from pylbm_isca.forcing import MJOForcing
+from pylbm_isca.output import GradsWriter
 
 sp, vg = Spectral(), VerticalGrid()
 bs = load_basic_state("data/bs.1979.bin", sp, vg)
@@ -149,16 +155,16 @@ u200 = model.ga.u[:, :, 12]        # response at sigma ~ 0.175
 ## Layout
 
 ```
-lbm_isca/constants.py   GFDL constants, T42 L20 resolution, sigma half levels
-lbm_isca/spectral.py    spherical-harmonic transforms (shared, unchanged)
-lbm_isca/vertical.py    Simmons-Burridge sigma operators (new)
-lbm_isca/dynamics.py    linearised Isca tendencies (new)
-lbm_isca/integrator.py  semi-implicit leapfrog + damping (shared)
-lbm_isca/state.py       grid state, grid<->spectral, Robert-Asselin filter
-lbm_isca/model.py       configuration and the time loop
-lbm_isca/basicstate.py  pressure-level -> sigma basic state (shared)
-lbm_isca/forcing.py     steady and MJO forcing readers (shared)
-lbm_isca/output.py      GrADS / netCDF writers (shared)
+pylbm_isca/constants.py   GFDL constants, T42 L20 resolution, sigma half levels
+pylbm_isca/spectral.py    spherical-harmonic transforms
+pylbm_isca/vertical.py    Simmons-Burridge sigma operators
+pylbm_isca/dynamics.py    linearised Isca tendencies
+pylbm_isca/integrator.py  semi-implicit leapfrog + damping
+pylbm_isca/state.py       grid state, grid<->spectral, Robert-Asselin filter
+pylbm_isca/model.py       configuration and the time loop
+pylbm_isca/basicstate.py  pressure-level -> sigma basic state
+pylbm_isca/forcing.py     steady and MJO forcing readers
+pylbm_isca/output.py      GrADS / netCDF writers
 run_lbm.py              command-line driver
 tests/                  validation
 ```
@@ -168,7 +174,7 @@ tests/                  validation
 ```bash
 python tests/test_vertical_isca.py   # Simmons-Burridge coefficients & matrices
 python tests/test_physics_isca.py    # resting-state zero tendency; Gill response
-python tests/test_spectral.py        # shared transforms
+python tests/test_spectral.py        # spherical-harmonic transforms
 ```
 
 Key checks: a resting isothermal basic state with no forcing gives **exactly
@@ -205,20 +211,20 @@ You can run examples 2 and 3 with zero setup (and a free GPU) in
 
 ## License
 
-GPLv3-or-later — see [`LICENSE`](LICENSE). LBM_isca is a re-derivation from the
+GPLv3-or-later — see [`LICENSE`](LICENSE). PyLBM-Isca is a re-derivation from the
 GPLv3 Isca sources (`github.com/ExeClim/Isca`); it contains **no** code from the
 permission-restricted Watanabe–Kimoto `ln_solver`.
 
 ## Citation
 
-If you use LBM_isca, please cite the archived release. The citation metadata
+If you use PyLBM-Isca, please cite the archived release. The citation metadata
 live in [`CITATION.cff`](CITATION.cff); GitHub shows a ready-made citation via
 *"Cite this repository"*. The archive is on Zenodo:
 
 - **Concept DOI** (always the latest version): [10.5281/zenodo.24084237](https://doi.org/10.5281/zenodo.24084237)
-- **This release (v0.1.0):** [10.5281/zenodo.24084238](https://doi.org/10.5281/zenodo.24084238)
+- **This release (v1.0.0):** DOI minted on archival of the v1.0.0 tag (replaces the v0.1.0 record `10.5281/zenodo.24084238`)
 
 ```
-kuiper2000 (2026). LBM_isca: a Linear Baroclinic Model on the Isca/GFDL
-spectral core (v0.1.0). Zenodo. https://doi.org/10.5281/zenodo.24084238
+Tseng, Kai-Chih (2026). PyLBM-Isca: a Linear Baroclinic Model on the Isca/GFDL
+spectral core (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.24084237
 ```

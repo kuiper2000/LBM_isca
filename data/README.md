@@ -13,10 +13,18 @@ downloaded here on first run:
 
 | file | size | description |
 |---|---|---|
-| `bs.1979.bin`    | 11 MB | **ERA5** reanalysis **basic state**, JFM 1979, interpolated onto the model's 17 standard pressure levels. Fortran-sequential big-endian `real*4`, ordered month → variable → level (z, rhum, q, t, u, v, omega) on the 128×64 Gaussian grid. Read by `lbm_isca.basicstate.load_basic_state`. |
-| `frc.phase1.bin` | 46 MB | **MJO phase-1** time-varying temperature forcing, 73 days × 20 levels on the same grid. Read by `lbm_isca.forcing.MJOForcing`. |
+| `bs.1979.bin`    | 11 MB | **ERA5** reanalysis **basic state**, JFM 1979, interpolated onto the model's 17 standard pressure levels. Fortran-sequential big-endian `real*4`, ordered month → variable → level (z, rhum, q, t, u, v, omega) on the 128×64 Gaussian grid. Read by `pylbm_isca.basicstate.load_basic_state`. |
+| `frc.phase1.bin` | 46 MB | **MJO phase-1** time-varying temperature forcing, 73 days × 20 levels on the same grid. Read by `pylbm_isca.forcing.MJOForcing`. |
 
-Both files share the layout of the sibling `LBM_python_GPU` package and are
+Both files use a Fortran-sequential, big-endian `real*4` layout and are
 interchangeable with any file of the same structure — substitute your own
 basic state / forcing by pointing `--basic-state` / `--mjo-forcing` (or the
 notebook's `DATA` path) elsewhere.
+
+## Provenance
+
+`bs.1979.bin` and `frc.phase1.bin` are the author's own derived products: the
+basic state is computed from **ERA5** reanalysis (JFM 1979) by the preprocessing
+in `pylbm_isca.basicstate`, and the MJO phase-1 heating is constructed as
+described in the manuscript (Sect. 4.3). Neither file is taken from the
+permission-restricted Watanabe–Kimoto LBM distribution.

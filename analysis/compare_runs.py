@@ -19,11 +19,11 @@ import sys
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(HERE))          # LBM_isca root
+sys.path.insert(0, os.path.dirname(HERE))          # PyLBM-Isca root
 sys.path.insert(0, HERE)
 
 from grdlib import read_grd, field, metrics, var_slice, rms_field  # noqa: E402
-from lbm_isca import VerticalGrid                                  # noqa: E402
+from pylbm_isca import VerticalGrid                                  # noqa: E402
 
 
 def level_indices():

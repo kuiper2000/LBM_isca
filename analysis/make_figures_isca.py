@@ -3,14 +3,14 @@
 
 Isca-core counterpart of LBM_GPU_GMD/analysis/make_figures.py (which used the
 old Watanabe-Kimoto GPU port, ``lbm``).  Every figure is now produced by running
-the linearised Isca core, ``lbm_isca``:
+the linearised Isca core, ``pylbm_isca``:
 
   1. gill_response.pdf          - Gill response to equatorial heating on a
                                   resting isothermal state (Sect. 4.1)
   2. solidbody_teleconnection.pdf - stationary Rossby-wave train from idealised
                                   heating on a solid-body-rotation state (Sect. 4.2)
   3. teleconnection_d15_30.pdf  - 200 hPa psi response to realistic MJO phase-1
-                                  heating on the JFM 1979 NCEP basic state,
+                                  heating on the JFM 1979 ERA5 basic state,
                                   days 15-30 (Sect. 4.3)
 
 PDFs are written straight into the manuscript's figures/ directory so the paper
@@ -34,10 +34,10 @@ matplotlib.rcParams["pdf.fonttype"] = 42               # embed TrueType, not Typ
 matplotlib.rcParams["ps.fonttype"] = 42
 import matplotlib.pyplot as plt
 
-from lbm_isca import Config, LBM, Spectral, VerticalGrid, asnumpy, gpu_available
-from lbm_isca.basicstate import load_basic_state
-from lbm_isca.forcing import SteadyForcing, MJOForcing
-from lbm_isca.output import NetCDFWriter
+from pylbm_isca import Config, LBM, Spectral, VerticalGrid, asnumpy, gpu_available
+from pylbm_isca.basicstate import load_basic_state
+from pylbm_isca.forcing import SteadyForcing, MJOForcing
+from pylbm_isca.output import NetCDFWriter
 
 DEVICE = "gpu" if gpu_available() else "cpu"
 
@@ -47,8 +47,8 @@ MANU_FIGDIR = os.path.normpath(
 FIGDIR = MANU_FIGDIR if os.path.isdir(MANU_FIGDIR) else os.path.join(HERE, "figures")
 os.makedirs(FIGDIR, exist_ok=True)
 
-# inputs shared with the sibling port
-DATA = os.path.normpath(os.path.join(ISCA_ROOT, "..", "LBM_python_GPU"))
+# realistic-case inputs (ERA5-derived; archived on Zenodo)
+DATA = os.path.join(ISCA_ROOT, "data")
 BS_1979 = os.path.join(DATA, "bs.1979.bin")
 FRC_PHASE1 = os.path.join(DATA, "frc.phase1.bin")
 
@@ -56,7 +56,7 @@ print(f"PyLBM-Isca figures  backend={DEVICE}  -> {FIGDIR}")
 
 
 # ---------------------------------------------------------------------------
-# idealised basic states / forcing (identical construction to the sibling)
+# idealised basic states / forcing (analytic construction)
 # ---------------------------------------------------------------------------
 def resting_state(sp, vg, t0=250.0):
     shape = (sp.nlat, sp.nlon, vg.kmax)
@@ -195,7 +195,7 @@ def fig_solidbody():
 
 
 # ---------------------------------------------------------------------------
-# Figure 3 - realistic MJO teleconnection (35-day run on the NCEP basic state)
+# Figure 3 - realistic MJO teleconnection (35-day run on the ERA5 basic state)
 # ---------------------------------------------------------------------------
 def fig_teleconnection():
     print("\n[3/3] Realistic MJO phase-1 teleconnection (days 15-30)...")

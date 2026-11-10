@@ -1,35 +1,34 @@
-"""Basic-state preprocessing: NCEP pressure levels -> model sigma levels.
+"""Basic-state preprocessing: ERA5 pressure levels -> model sigma levels.
 
-Port of ``solver/util/ncepsbs.f``.  The original reads a multi-month NCEP
-file, time-averages it, derives surface pressure from geopotential height and
-a topography field, spectrally smooths, and interpolates from pressure to
-sigma with a natural cubic spline.
+This follows the structure of the basic-state preprocessing in the
+Watanabe-Kimoto linear baroclinic model, using standard published algorithms.
+It reads a multi-month ERA5 pressure-level file, time-averages it, derives
+surface pressure from geopotential height (and an optional topography field),
+spectrally smooths, and interpolates from pressure to sigma with a natural
+cubic spline (Press et al., 2007, Numerical Recipes, Sect. 3.3).
 
-Routine map
------------
+Pipeline
+--------
 ================  =====================================  ====================
-Fortran           what it does                           here
+step              what it does                           here
 ================  =====================================  ====================
-main read loop    ncepsbs.f:180-282, month average       :func:`read_ncep`
-``Z2PS``          ncepsbs.f:587-621, Ps from Z and Zs     :func:`z2ps`
-``SPECSM``        ncepsbs.f:538-585, spectral smoothing   :func:`specsm`
-``ZMSW``          ncepsbs.f:623-653, zonal mean / eddy    :func:`zmsw`
-``P2S``           ncepsbs.f:655-706, p -> sigma           :func:`p2s`
-``SPLINE``        ncepsbs.f:708-788, natural cubic spline :func:`spline`
+read / average    read levels, average over months       :func:`read_pressure_levels`
+Ps from Z         surface pressure from Z and Zs          :func:`z2ps`
+spectral smooth   grid -> wave -> grid truncation         :func:`specsm`
+zonal mean/eddy   split into zonal mean and eddy          :func:`zmsw`
+p -> sigma        vertical interpolation                  :func:`p2s`
+cubic spline      natural cubic spline                    :func:`spline`
 ================  =====================================  ====================
 
-Two notes on fidelity:
+Two notes:
 
-* ``SPECSM`` declares a local ``NMAX=21, NMDIM=506``, but those only size the
-  local ``NMO``/``EDEL`` arrays, which the subroutine never uses.  The actual
-  smoothing is ``G2W`` followed by ``W2G`` from the model library, which is
-  compiled at the model's own resolution.  So the smoothing is a **T42**
-  truncation, not T21 -- ``trunc`` is exposed in case you want to check.
-* The topography file ``bs/gt3/grz.t42`` is not present in this copy of the
-  package, so ``zs`` defaults to zero (a flat lower boundary).  That is
-  consistent with the model's dynamics, which force the topographic forcing
-  ``WPHIS`` to zero anyway (dadmn-2.F:149).  Pass a real surface-height field
-  to ``zs`` if you recover ``grz.t42``.
+* Spectral smoothing is a grid -> wave -> grid round trip truncated at the
+  model's own resolution, i.e. a **T42** truncation -- ``trunc`` is exposed in
+  case you want to check.
+* When no topography field is supplied, ``zs`` defaults to zero (a flat lower
+  boundary).  That is consistent with the model's dynamics, which set the
+  topographic forcing to zero.  Pass a real surface-height field to ``zs`` to
+  include orography.
 """
 
 from dataclasses import dataclass
@@ -37,31 +36,30 @@ from dataclasses import dataclass
 import numpy as np
 
 from .backend import asnumpy
-from .constants import IMAX, JMAX, KMAX, PLEV_NCEP17
+from .constants import IMAX, JMAX, KMAX, PLEV17
 
-UNDEF_IN = -9.999e20      # ncepsbs.f:77
-XMISS = -999.0            # ncepsbs.f, missing-value marker
+UNDEF_IN = -9.999e20      # input undefined-value sentinel
+XMISS = -999.0            # internal missing-value marker
 
-# Variable order inside the NCEP file (ncepsbs.f:218-267).  Relative humidity
-# (2) and omega (7) are read past and discarded, exactly as the Fortran does.
-NCEP_VARS = ["z", "rhum", "q", "t", "u", "v", "omega"]
-NCEP_KEEP = ["z", "q", "t", "u", "v"]
+# Variable order inside the pressure-level file.  Relative humidity (2) and
+# omega (7) are read past and discarded.
+BS_VARS = ["z", "rhum", "q", "t", "u", "v", "omega"]
+BS_KEEP = ["z", "q", "t", "u", "v"]
 
 
 # ---------------------------------------------------------------------------
 # Reading
 # ---------------------------------------------------------------------------
-def read_ncep(path, kmo=1, navg=3, nlon=IMAX, nlat=JMAX, nlev=17,
+def read_pressure_levels(path, kmo=1, navg=3, nlon=IMAX, nlat=JMAX, nlev=17,
               nvar=7, nmonth=None, yflip=True):
-    """Read and time-average the NCEP pressure-level basic-state file.
+    """Read and time-average the ERA5 pressure-level basic-state file.
 
     Layout (verified against ``bs.1979.bin``): Fortran sequential records,
     big-endian ``real*4``, ``(nlon, nlat)`` per record, ordered
     ``month -> variable -> level``.
 
     ``yflip=True`` converts the file's south-first rows into the model's
-    north-first order, reproducing the ``DAT0(I, JMAX+1-J)`` indexing at
-    ncepsbs.f:224.
+    north-first order.
 
     Returns a dict of ``(nlat, nlon, nlev)`` arrays for z, q, t, u, v.
     """
@@ -84,16 +82,16 @@ def read_ncep(path, kmo=1, navg=3, nlon=IMAX, nlat=JMAX, nlev=17,
             f"{per_month} (= {nvar} vars x {nlev} levels)")
     nmonth = nmo_file if nmonth is None else nmonth
 
-    out = {v: np.zeros((nlat, nlon, nlev)) for v in NCEP_KEEP}
-    miss = {v: np.zeros((nlat, nlon, nlev), dtype=bool) for v in NCEP_KEEP}
+    out = {v: np.zeros((nlat, nlon, nlev)) for v in BS_KEEP}
+    miss = {v: np.zeros((nlat, nlon, nlev), dtype=bool) for v in BS_KEEP}
 
     issn = kmo
     for _ in range(navg):
         base = (issn - 1) * per_month
         if base + per_month > data.shape[0]:
             raise ValueError(f"{path}: month {issn} beyond end of file")
-        for iv, name in enumerate(NCEP_VARS):
-            if name not in NCEP_KEEP:
+        for iv, name in enumerate(BS_VARS):
+            if name not in BS_KEEP:
                 continue
             blk = data[base + iv * nlev: base + (iv + 1) * nlev]   # (lev,lat,lon)
             blk = np.moveaxis(blk, 0, -1)                          # (lat,lon,lev)
@@ -105,7 +103,7 @@ def read_ncep(path, kmo=1, navg=3, nlon=IMAX, nlat=JMAX, nlev=17,
         if issn > nmo_file:
             issn -= nmo_file
 
-    for name in NCEP_KEEP:
+    for name in BS_KEEP:
         if miss[name].any():
             out[name][miss[name]] = XMISS
     return out
@@ -114,8 +112,8 @@ def read_ncep(path, kmo=1, navg=3, nlon=IMAX, nlat=JMAX, nlev=17,
 # ---------------------------------------------------------------------------
 # Surface pressure
 # ---------------------------------------------------------------------------
-def z2ps(z, zs, plev=PLEV_NCEP17):
-    """Surface pressure from geopotential height (``Z2PS``, ncepsbs.f:587-621).
+def z2ps(z, zs, plev=PLEV17):
+    """Surface pressure from geopotential height.
 
     Scans upward for the first level whose height exceeds the surface height,
     clamps that index to ``[2, nlev]`` and interpolates pressure linearly in
@@ -135,7 +133,7 @@ def z2ps(z, zs, plev=PLEV_NCEP17):
 
     above = z > zs[..., None]
     any_above = above.any(axis=-1)
-    # first True along the level axis; where none, the Fortran leaves KA at
+    # first True along the level axis; where none, the index is left at
     # its initial value NLEV (the DO loop ran to completion).
     ka = np.where(any_above, above.argmax(axis=-1), nlev - 1)
     ka = np.clip(ka, 1, nlev - 1)                 # MIN(MAX(KA,2),NLEV), 0-based
@@ -154,7 +152,7 @@ def z2ps(z, zs, plev=PLEV_NCEP17):
 # Smoothing
 # ---------------------------------------------------------------------------
 def specsm(field, sp):
-    """Spectral smoothing: grid -> wave -> grid (``SPECSM``, ncepsbs.f:538).
+    """Spectral smoothing: grid -> wave -> grid.
 
     ``sp.truncate`` may run on the GPU; the basic-state pipeline stays on the
     host, so the result is brought back with :func:`asnumpy` (a no-op on a CPU
@@ -176,11 +174,11 @@ def zmsw(field, ozm=False, osw=False):
 # Vertical interpolation
 # ---------------------------------------------------------------------------
 def spline(x, z, xi, omisb=False, omist=False, xmiss=XMISS):
-    """Natural cubic spline, a vectorised port of ``SPLINE`` (ncepsbs.f:708).
+    """Natural cubic spline (Press et al., 2007, Numerical Recipes, Sect. 3.3).
 
     ``x`` is a shared, strictly monotonic abscissa (here ``ln p``, which is
     *descending*); ``z`` holds one data column per row; ``xi`` holds the
-    target abscissae per row.  Outside the data range the Fortran clamps to
+    target abscissae per row.  Outside the data range the scheme clamps to
     the end value unless the corresponding ``omis`` flag is set.
 
     Note the forward sweep of the tridiagonal solve depends only on ``x``, so
@@ -198,7 +196,7 @@ def spline(x, z, xi, omisb=False, omist=False, xmiss=XMISS):
     xi = np.asarray(xi, dtype=np.float64)
     k = x.size
 
-    # --- tridiagonal forward sweep (ncepsbs.f:731-741) ------------------
+    # --- tridiagonal forward sweep -------------------------------------
     y2f = np.zeros(k)                  # scalar decomposition coefficients
     u = np.zeros(z.shape)              # per-column right-hand side
     for i in range(1, k - 1):
@@ -215,8 +213,8 @@ def spline(x, z, xi, omisb=False, omist=False, xmiss=XMISS):
     for i in range(k - 2, -1, -1):
         y2[:, i] = y2f[i] * y2[:, i + 1] + u[:, i]
 
-    # --- locate the bracketing interval (ncepsbs.f:759-767) -------------
-    # Fortran finds the first K with X(K) < XI(L); x is descending, so flip
+    # --- locate the bracketing interval --------------------------------
+    # find the first K with X(K) < XI(L); x is descending, so flip
     # the sign to use a standard ascending search.
     xr = -x
     ku = np.searchsorted(xr, -xi.ravel(), side="right").reshape(xi.shape)
@@ -240,8 +238,8 @@ def spline(x, z, xi, omisb=False, omist=False, xmiss=XMISS):
     return out
 
 
-def p2s(gdi, ps, sig, plev=PLEV_NCEP17, xmiss=XMISS):
-    """Pressure -> sigma interpolation (``P2S``, ncepsbs.f:655-706).
+def p2s(gdi, ps, sig, plev=PLEV17, xmiss=XMISS):
+    """Pressure -> sigma interpolation.
 
     Parameters
     ----------
@@ -293,14 +291,13 @@ class BasicState:
 
 def load_basic_state(path, sp, vgrid, kmo=1, navg=3, zs=None,
                      ozm=False, osw=False, smooth=True, yflip=True,
-                     plev=PLEV_NCEP17):
-    """Full ``ncepsbs`` pipeline: read -> average -> Ps -> smooth -> p2s.
+                     plev=PLEV17):
+    """Full basic-state pipeline: read -> average -> Ps -> smooth -> p2s.
 
-    The order of operations follows ncepsbs.f: surface pressure is smoothed
-    *before* the vertical interpolation (ncepsbs.f:336), while u, v, T and q
-    are smoothed *after* it (ncepsbs.f:380-458).
+    Order of operations: surface pressure is smoothed *before* the vertical
+    interpolation, while u, v, T and q are smoothed *after* it.
     """
-    raw = read_ncep(path, kmo=kmo, navg=navg, nlon=sp.nlon, nlat=sp.nlat,
+    raw = read_pressure_levels(path, kmo=kmo, navg=navg, nlon=sp.nlon, nlat=sp.nlat,
                     nlev=len(plev), yflip=yflip)
 
     if zs is None:

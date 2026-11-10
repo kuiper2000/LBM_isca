@@ -1,14 +1,14 @@
 """Semi-implicit leapfrog time integration, damping and vertical diffusion.
 
-Reused unchanged from the sibling ``lbm`` package: the hyperdiffusion/sponge,
-the per-wavenumber gravity-wave matrix and the implicit vertical diffusion are
-numerical scaffolding that is independent of which dynamical core supplies the
-vertical operators.  Here it consumes the **Simmons-Burridge** operators
-(``whmtx = WW @ tmtx``, ``gcmtx``, ``gg``) that :mod:`lbm_isca.vertical` builds,
-so the same per-wavenumber matrix ``M(n) = diag(fd*ft) - dt^2*lap*(whmtx +
-gcmtx*ft)`` becomes Isca's gravity-wave operator (implicit.F90:build_matrix).
-The Robert-Asselin time filter lives in :mod:`lbm_isca.state` / the time loop,
-not here.
+The hyperdiffusion/sponge, the per-wavenumber gravity-wave matrix and the
+implicit vertical diffusion are numerical scaffolding, independent of which
+dynamical core supplies the vertical operators; they follow the standard
+semi-implicit spectral scheme (Bourke 1974; Hoskins & Simmons 1975).  Here they
+consume the **Simmons-Burridge** operators (``whmtx = WW @ tmtx``, ``gcmtx``,
+``gg``) that :mod:`pylbm_isca.vertical` builds, so the same per-wavenumber matrix
+``M(n) = diag(fd*ft) - dt^2*lap*(whmtx + gcmtx*ft)`` becomes Isca's gravity-wave
+operator (``implicit.F90:build_matrix``).  The Robert-Asselin time filter lives
+in :mod:`pylbm_isca.state` / the time loop, not here.
 
 The gravity-wave matrix depends only on the *total* wavenumber n, so there is
 one KMAX x KMAX matrix per n (43 of them at T42), rebuilt whenever dt changes.
@@ -51,7 +51,7 @@ class Damping:
 
         tau = _to_seconds(tefold, tunit_hdif)
 
-        # DSETDF (dsetd-2.F:210-230).  The /NMAX inside both DIFMAX and DIFTN
+        # Hyperdiffusion coefficients: the /NMAX inside both diffusion scalings
         # cancels, leaving [n(n+1)/(N(N+1))]^p.
         difmax = (nmax * (nmax + 1.0) / nmax) ** p
         dift_n = (nn1 / nmax) ** p
@@ -66,7 +66,7 @@ class Damping:
         self.kt_h = kt
         self.kv_h = kv
 
-        # Top sponge (dsetd-2.F:270-281).  Note RAY0 is interpreted in the
+        # Top sponge.  Note RAY0 is interpreted in the
         # &nmhdif TUNIT, which the run script sets to HOUR.
         self.sponge_k = np.zeros(kmax)
         if sponge:
@@ -76,7 +76,7 @@ class Damping:
             fac = np.maximum(1.0 + np.tanh((z - rzofs) / rzsclh), 1e-20)
             self.sponge_k = fac / ray0_s
 
-        # Rayleigh / Newtonian damping (&nmdamp, dintg-2.F:131-157)
+        # Rayleigh / Newtonian damping (&nmdamp)
         self.drag_v = _drag(ddragv, kmax, tunit_damp)
         self.drag_d = _drag(ddragd, kmax, tunit_damp)
         self.drag_t = _drag(ddragt, kmax, tunit_damp)
@@ -84,9 +84,8 @@ class Damping:
 
         # Assemble the (n, k) coefficient arrays.  Order matters: the
         # hyperdiffusion is zero at n=0 (and, for vor/div, at n=1 as well --
-        # that falls out of DIFVN automatically), but the sponge and the
-        # &nmdamp drag are added at *every* n, n=0 included
-        # (dsetd-2.F:270-281, dintg-2.F:160-166).
+        # that falls out automatically), but the sponge and the
+        # &nmdamp drag are added at *every* n, n=0 included.
         kv2 = kv[:, None] + self.sponge_k[None, :] + self.drag_v[None, :]
         kd2 = kv[:, None] + self.sponge_k[None, :] + self.drag_d[None, :]
         ktt2 = kt[:, None] + self.drag_t[None, :]
@@ -129,7 +128,7 @@ class SemiImplicit:
         self.minv = None
 
     def prepare(self, dt):
-        """Build and invert the matrices for this dt (DMTRIX, dmtrx.F:68-86).
+        """Build and invert the matrices for this dt.
 
         The 43 (nmax+1) matrices are assembled once on the host -- cheap, and
         only when ``dt`` changes -- then inverted in one batched GPU call.
@@ -182,7 +181,7 @@ class VerticalDiffusion:
         kmax = vgrid.kmax
         dsig, dsigm = asnumpy(vgrid.dsig), asnumpy(vgrid.dsigm)
 
-        # Tridiagonal second difference in sigma (dsetd-2.F:546-565)
+        # Tridiagonal second difference in sigma
         a = np.zeros(kmax)
         c = np.zeros(kmax)
         a[1:] = 1.0 / (dsig[1:] * dsigm[1:kmax])
@@ -243,7 +242,7 @@ class VerticalDiffusion:
 
 def _vdif_coef(v, kmax):
     """VDF(k) = 1/(86400*VDIF(k)); a non-positive entry disables the variable
-    entirely (dsetd-2.F:496-525)."""
+    entirely."""
     if v is None:
         return None
     v = np.atleast_1d(np.asarray(v, dtype=np.float64))
@@ -255,7 +254,7 @@ def _vdif_coef(v, kmax):
 
 
 class Integrator:
-    """Semi-implicit leapfrog (TINTGR, dintg-2.F:182-270)."""
+    """Semi-implicit leapfrog time integration."""
 
     def __init__(self, sp, vgrid, damping, semi, vdiff):
         self.sp, self.vg = sp, vgrid

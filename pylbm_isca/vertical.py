@@ -1,6 +1,6 @@
-# Copyright (C) 2026  LBM_isca authors
+# Copyright (C) 2026  PyLBM-Isca authors
 #
-# This file is part of LBM_isca and is distributed under the GNU General Public
+# This file is part of PyLBM-Isca and is distributed under the GNU General Public
 # License v3 (or later).  The discretisation re-derives the Simmons & Burridge
 # (1981) energy-conserving vertical scheme as implemented in the GPLv3 Isca /
 # GFDL ``atmos_spectral`` core (github.com/ExeClim/Isca).
@@ -147,7 +147,7 @@ class VerticalGrid:
             about this profile -- the proper LBM choice -- rather than Isca's
             isothermal 300 K ``ref_temperature_implicit``.
 
-        Operators (names match what :mod:`lbm_isca.integrator` consumes):
+        Operators (names match what :mod:`pylbm_isca.integrator` consumes):
 
         * ``gg``   = R * Tbar * cpg -- the reference pressure-gradient weight
           ``h1`` (implicit.F90:pres_grad_funct).  In pure sigma the second part

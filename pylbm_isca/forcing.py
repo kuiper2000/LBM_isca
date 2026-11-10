@@ -1,15 +1,14 @@
 """Readers for the two forcing channels of this LBM build.
 
-1. The canonical *steady* forcing (``&nmsfrc fsfrc=``), read by ``RDSFRC``
-   (dterm-2.F_Kai-Chih_backup:586-739).  For the dry model the file holds
+1. The canonical *steady* forcing (``&nmsfrc fsfrc=``).  For the dry model the
+   file holds
    ``3*KMAX+1 = 61`` records per case:
    ``vorticity(20) | divergence(20) | temperature(20) | ln(Ps)(1)``.
 
-2. The *time-varying* MJO temperature forcing added to this build by the
-   subroutine ``MJO_FORCE3`` (dterm-2.F_Kai-Chih_backup:961-1145), which
-   reads a hard-coded file of ``ND=73`` days x ``KMAX=20`` levels and
-   linearly interpolates it onto ``NT=72`` sub-steps per day.  This channel
-   *replaces* the steady temperature forcing (dterm-2.F:327).
+2. The *time-varying* MJO temperature forcing, which reads a file of
+   ``ND=73`` days x ``KMAX=20`` levels and linearly interpolates it onto
+   ``NT=72`` sub-steps per day.  This channel *replaces* the steady
+   temperature forcing.
 
 All files are Fortran sequential-unformatted, big-endian, ``real*4``, with
 one ``(nlon, nlat)`` record per level (longitude varying fastest).
@@ -23,16 +22,15 @@ no flip, so it assumes the file is already north-first.
 The two input families do **not** share a convention, so check which one you
 are reading:
 
-* ``bs.YYYY.bin`` (the basic state) comes through the usual GrADS/NCEP route
+* ``bs.YYYY.bin`` (the basic state) comes through the usual GrADS route
   and *is* south-first; it must be flipped, which is why
-  :func:`lbm.basicstate.load_basic_state` keeps ``yflip=True``.  This is
+  :func:`pylbm_isca.basicstate.load_basic_state` keeps ``yflip=True``.  This is
   verifiable from the data: months 1-3 of ``bs.1979.bin`` are JFM, and only
   the flipped reading puts the stronger subtropical jet in the Northern
   Hemisphere (45.3 m/s at +29.3 deg, against 30.0 m/s in the SH).
 * ``frc.phaseN.bin`` (the MJO forcing) is written north-first, so it is read
   with no flip -- ``yflip=False``, the default here and for
-  :meth:`SteadyForcing.from_file`.  That makes ``MJO_FORCE3``'s no-flip read
-  correct as it stands.
+  :meth:`SteadyForcing.from_file`.  That makes the no-flip read correct as it stands.
 """
 
 import os
@@ -99,15 +97,15 @@ class SteadyForcing:
 
 
 class MJOForcing:
-    """Time-varying temperature forcing, a port of ``MJO_FORCE3``.
+    """Time-varying MJO temperature forcing.
 
-    The call sequence reproduces the Fortran exactly:
+    The call sequence:
 
-    * The first ``spinup`` calls hold day 1 (``COUNTER < 435`` returns early,
-      leaving ``GSFTM`` at the day-1 field set during initialisation).
-    * From call ``spinup`` onward the field marches through the file, linearly
+    * The first ``spinup`` calls hold the day-1 field set during
+      initialisation.
+    * From ``spinup`` onward the field marches through the file, linearly
       interpolated between consecutive days over ``nt`` sub-steps:
-      ``WORK(L) = GTF(IT) + (GTF(IT+1)-GTF(IT))/nt * (L-1)``.
+      ``work(L) = gtf(it) + (gtf(it+1)-gtf(it))/nt * (L-1)``.
     """
 
     def __init__(self, path, nlev=KMAX, ndays=73, nt=72, spinup=435,

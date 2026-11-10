@@ -1,5 +1,5 @@
-# Copyright (C) 2026  LBM_isca authors.  GPLv3 (or later).
-"""Checks on the Simmons-Burridge vertical operators (lbm_isca.vertical).
+# Copyright (C) 2026  PyLBM-Isca authors.  GPLv3 (or later).
+"""Checks on the Simmons-Burridge vertical operators (pylbm_isca.vertical).
 
 These verify the ps-independent geometry (alpha, log-pressure weights, the
 pressure-gradient weight) and the reference-state matrices against independent
@@ -14,9 +14,9 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from lbm_isca.constants import KAPPA, RAIR, SIGM            # noqa: E402
-from lbm_isca.vertical import VerticalGrid, compute_tbar    # noqa: E402
-from lbm_isca.backend import asnumpy                        # noqa: E402
+from pylbm_isca.constants import KAPPA, RAIR, SIGM            # noqa: E402
+from pylbm_isca.vertical import VerticalGrid, compute_tbar    # noqa: E402
+from pylbm_isca.backend import asnumpy                        # noqa: E402
 
 
 def _vg():

@@ -10,7 +10,7 @@ Because the GPU is far from saturated at T42 (the per-step cost is launch- and
 dispatch-bound, not arithmetic-bound; see the performance section), batching N
 members costs little more than one until the device fills up.  Throughput --
 experiments per unit time -- therefore rises almost linearly with the ensemble
-size until saturation, a capability the serial Fortran code cannot offer.
+size until saturation, a capability a serial CPU implementation cannot offer.
 
 Design
 ------

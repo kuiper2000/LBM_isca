@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gill response in LBM_isca: process validation + CPU-vs-GPU parity.
+"""Gill response in PyLBM-Isca: process validation + CPU-vs-GPU parity.
 
 Mirrors LBM_GPU_GMD/analysis/a8_gill_decay.py but on the Isca/GFDL core and on
 BOTH backends.  A resting, isothermal basic state is forced by a steady
@@ -20,9 +20,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ISCA_ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ISCA_ROOT)
 
-from lbm_isca import Config, LBM, Spectral, VerticalGrid          # noqa: E402
-from lbm_isca.forcing import SteadyForcing                        # noqa: E402
-from lbm_isca.backend import asnumpy                              # noqa: E402
+from pylbm_isca import Config, LBM, Spectral, VerticalGrid          # noqa: E402
+from pylbm_isca.forcing import SteadyForcing                        # noqa: E402
+from pylbm_isca.backend import asnumpy                              # noqa: E402
 
 A_EARTH = 6.371e6
 
@@ -112,7 +112,7 @@ def parity(hg, hc):
 
 
 def main():
-    from lbm_isca import gpu_available
+    from pylbm_isca import gpu_available
     hc, lat, lon, sig = run("cpu")
     scales_cpu = gill_scales(hc, lat, lon, sig)
     out = {
