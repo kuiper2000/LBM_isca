@@ -16,14 +16,16 @@ authors:
     orcid: "https://orcid.org/0000-0002-4789-705X"
     affiliation: "Department of Atmospheric Sciences, National Taiwan University"
 version: "1.0.0"
-doi: 10.5281/zenodo.24084237
+doi: 10.5281/zenodo.24114461
 license: GPL-3.0-or-later
 repository-code: "https://github.com/kuiper2000/PyLBM-Isca"
 identifiers:
   - type: doi
     value: 10.5281/zenodo.24084237
     description: "Concept DOI (all versions)"
-  # Version DOI for v1.0.0 is minted when the v1.0.0 tag is archived on Zenodo.
+  - type: doi
+    value: 10.5281/zenodo.24114461
+    description: "Version DOI (v1.0.0)"
 keywords:
   - linear baroclinic model
   - atmospheric dynamics
