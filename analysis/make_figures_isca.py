@@ -10,7 +10,7 @@ the linearised Isca core, ``pylbm_isca``:
   2. solidbody_teleconnection.pdf - stationary Rossby-wave train from idealised
                                   heating on a solid-body-rotation state (Sect. 4.2)
   3. teleconnection_d15_30.pdf  - 200 hPa psi response to realistic MJO phase-1
-                                  heating on the JFM 1979 ERA5 basic state,
+                                  heating on the DJF 1979 ERA5 basic state,
                                   days 15-30 (Sect. 4.3)
 
 PDFs are written straight into the manuscript's figures/ directory so the paper

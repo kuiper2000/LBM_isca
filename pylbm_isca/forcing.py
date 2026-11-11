@@ -25,7 +25,7 @@ are reading:
 * ``bs.YYYY.bin`` (the basic state) comes through the usual GrADS route
   and *is* south-first; it must be flipped, which is why
   :func:`pylbm_isca.basicstate.load_basic_state` keeps ``yflip=True``.  This is
-  verifiable from the data: months 1-3 of ``bs.1979.bin`` are JFM, and only
+  verifiable from the data: months 1-3 of ``bs.1979.bin`` are DJF, and only
   the flipped reading puts the stronger subtropical jet in the Northern
   Hemisphere (45.3 m/s at +29.3 deg, against 30.0 m/s in the SH).
 * ``frc.phaseN.bin`` (the MJO forcing) is written north-first, so it is read

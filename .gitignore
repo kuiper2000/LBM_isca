@@ -23,3 +23,7 @@ __pycache__/
 *.tmp
 *~
 .DS_Store
+
+# generated diagnostic figures (reproduced by analysis/*.py)
+analysis/*.pdf
+analysis/*.png

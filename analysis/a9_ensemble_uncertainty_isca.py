@@ -3,7 +3,7 @@
 
 Isca-core counterpart of LBM_GPU_GMD/analysis/a9_ensemble_uncertainty.py.
 
-All members share one basic state (JFM 1979) and a *similar* MJO phase-1 heating
+All members share one basic state (DJF 1979) and a *similar* MJO phase-1 heating
 that differs slightly between members (small random jitter in convective
 amplitude and longitude).  Running the whole ensemble in ONE batched GPU
 integration, we ask how robust the extratropical Rossby-wave teleconnection is to
@@ -174,7 +174,7 @@ def main():
     gm = np.sqrt((ens_mean ** 2).mean())
     gs = np.sqrt((ens_std ** 2).mean())
     out = {
-        "experiment": "A9 forcing-uncertainty ensemble (PyLBM-Isca), JFM 1979 "
+        "experiment": "A9 forcing-uncertainty ensemble (PyLBM-Isca), DJF 1979 "
                       "basic state, MJO phase-1 representative heating, 200 hPa "
                       "psi days 15-30",
         "model": "PyLBM-Isca",

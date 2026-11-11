@@ -3,7 +3,7 @@
 """Command-line driver for PyLBM-Isca (Isca/GFDL-core Linear Baroclinic Model).
 
 Example, reproducing an MJO phase-1 teleconnection experiment on the ERA5
-JFM 1979 basic state (inputs archived on Zenodo; see data/README.md)::
+DJF 1979 basic state (inputs archived on Zenodo; see data/README.md)::
 
     python run_lbm.py \\
         --basic-state data/bs.1979.bin \\

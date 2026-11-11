@@ -86,7 +86,7 @@ notebook:
 1. clones this repository,
 2. runs the **solid-body-rotation** example (stationary Rossby-wave train),
 3. downloads the realistic basic state and MJO forcing from Zenodo, and
-4. runs the **realistic ERA5 JFM 1979** experiment, including an animated
+4. runs the **realistic ERA5 DJF 1979** experiment, including an animated
    upper-level streamfunction response to MJO phase-1 heating.
 
 Open the badge above, then *Runtime → Run all* (pick a GPU runtime under
@@ -110,7 +110,7 @@ committed to this repository:
 
 | file | ~size | what it is |
 |---|---|---|
-| `bs.1979.bin`   | 11 MB | ERA5 pressure-level basic state (JFM 1979) |
+| `bs.1979.bin`   | 11 MB | ERA5 pressure-level basic state (DJF 1979) |
 | `frc.phase1.bin`| 46 MB | MJO phase-1 time-varying heating |
 
 `examples/example_3_realistic.ipynb` downloads them into `data/` from Zenodo on
@@ -203,7 +203,7 @@ experiments; each differs only in its **basic state**:
 
 1. `example_1_gill.ipynb` — Gill response on a resting isothermal state
 2. `example_2_solidbody.ipynb` — Rossby-wave train on a solid-body-rotation state
-3. `example_3_realistic.ipynb` — MJO teleconnection on the ERA5 JFM 1979 state
+3. `example_3_realistic.ipynb` — MJO teleconnection on the ERA5 DJF 1979 state
    (needs the input files above)
 
 You can run examples 2 and 3 with zero setup (and a free GPU) in
