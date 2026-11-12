@@ -205,12 +205,68 @@ def make_figure(rows):
     print(f"\nwrote {p}")
 
 
+def _worker_timing(days):
+    """One single-thread single-member timed run; prints 'ms_step=<value>'.
+
+    Launched as a subprocess with OMP/MKL threads pinned to 1 so that N of these
+    running concurrently emulate N independent members on a fully loaded CPU node.
+    """
+    sp = Spectral(device="cpu"); vg = VerticalGrid(device="cpu")
+    bs = resting_bs(sp, vg); base = gaussian_heat(sp, vg)
+    LBM(bs, sp, vg, Config(ndays=0.3)).run(
+        mjo_forcing=ConstForcing(base, sp.xp), verbose=False)          # warm-up
+    mT = LBM(bs, sp, vg, Config(ndays=days))
+    t0 = time.time()
+    mT.run(mjo_forcing=ConstForcing(base, sp.xp), verbose=False)
+    dt = time.time() - t0
+    print(f"ms_step={dt / (days * STEPS_PER_DAY) * 1e3:.6f}")
+
+
+def cpu_throughput(nprocs, days=2.0):
+    """Measure 35-day experiments/hour with `nprocs` concurrent 1-thread runs."""
+    import subprocess
+    env = dict(os.environ, OMP_NUM_THREADS="1", MKL_NUM_THREADS="1",
+               OPENBLAS_NUM_THREADS="1", NUMEXPR_NUM_THREADS="1")
+    cmd = [sys.executable, os.path.abspath(__file__), "--worker", "--days", str(days)]
+    print(f"\n=== CPU-node throughput: {nprocs} concurrent single-thread runs ===")
+    t0 = time.time()
+    procs = [subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, text=True)
+             for _ in range(nprocs)]
+    outs = [p.communicate()[0] for p in procs]
+    wall = time.time() - t0
+    ms = [float(l.split("=")[1]) for o in outs for l in o.splitlines()
+          if l.startswith("ms_step=")]
+    run35 = np.median(ms) * RUN_DAYS_35 * STEPS_PER_DAY / 1e3        # s, under load
+    thr = nprocs / run35 * 3600.0
+    print(f"  per-run (under load): {np.median(ms):.1f} ms/step, {run35:.1f} s/35-day")
+    print(f"  node throughput ({nprocs} procs): {thr:.0f} experiments/hour")
+    return dict(nprocs=nprocs, ms_step_median=float(np.median(ms)),
+                run35_s=float(run35), runs_per_hr=float(thr))
+
+
 if __name__ == "__main__":
-    par = parity("gpu")
-    rows = throughput("gpu")
-    if rows:
-        make_figure(rows)
-    with open(os.path.join(ANADIR, "ensemble.json"), "w") as fh:
-        json.dump(dict(parity=par, throughput=rows, model="PyLBM-Isca"), fh,
-                  indent=2)
-    print(f"wrote {os.path.join(ANADIR, 'ensemble.json')}")
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
+    ap.add_argument("--days", type=float, default=2.0)
+    ap.add_argument("--cpu-procs", type=int, default=0,
+                    help="measure CPU-node throughput with this many concurrent "
+                         "single-thread processes (fully-utilized-node baseline)")
+    args = ap.parse_args()
+
+    if args.worker:
+        _worker_timing(args.days)
+    elif args.cpu_procs:
+        res = cpu_throughput(args.cpu_procs, days=args.days)
+        with open(os.path.join(HERE, "cpu_node_throughput.json"), "w") as fh:
+            json.dump(res, fh, indent=2)
+        print(f"wrote {os.path.join(HERE, 'cpu_node_throughput.json')}")
+    else:
+        par = parity("gpu")
+        rows = throughput("gpu")
+        if rows:
+            make_figure(rows)
+        with open(os.path.join(ANADIR, "ensemble.json"), "w") as fh:
+            json.dump(dict(parity=par, throughput=rows, model="PyLBM-Isca"), fh,
+                      indent=2)
+        print(f"wrote {os.path.join(ANADIR, 'ensemble.json')}")
