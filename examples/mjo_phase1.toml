@@ -1,0 +1,61 @@
+# PyLBM-Isca namelist -- realistic ERA5 DJF 1979 + MJO phase-1 teleconnection.
+#
+# This is the TOML equivalent of the Watanabe-Kimoto LBM "SYSIN" file: one
+# editable text file that fully specifies a run.  Each table maps onto the
+# original Fortran namelist group shown in the comment.  Run it with:
+#
+#     python run_lbm.py --namelist examples/mjo_phase1.toml
+#
+# Any value omitted here keeps the model default, and any command-line flag you
+# add still overrides this file (e.g. --days 10 --device cpu).
+
+[run]                       # &nmrun
+label = "MJO phase-1 (ERA5 DJF 1979)"
+
+[time]                      # &nmtime / &nmdelt
+ndays  = 35                 # length of the integration [days]
+delt   = 1200.0             # time step [s]  (= 20 min)
+inistp = 2                  # short-step start-up count
+
+[hdif]                      # &nmhdif   (del^4 horizontal diffusion)
+order  = 4
+tefold = 2.0
+tunit  = "HOUR"
+
+[damp]                      # &nmdamp   (per-level Rayleigh drag, k=0 at bottom)
+tunit  = "DAY"
+ray0   = 30.0
+sponge = true
+ddragv = [0.5, 0.5, 0.5, 5, 15, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 0.5, 0.5]
+ddragd = [0.5, 0.5, 0.5, 5, 15, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 0.5, 0.5]
+ddragt = [0.5, 0.5, 0.5, 5, 15, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 0.5, 0.5]
+
+[vdif]                      # &nmvdif   (vertical diffusion, m^2 s^-1)
+vdifv = 1.0e3
+vdifd = 1.0e3
+vdift = 1.0e3
+
+[integration]
+robert          = 0.04      # Robert-Asselin time-filter coefficient
+strictly_linear = false     # true drops the 0.5*(u'^2+v'^2) term Isca keeps
+
+[input]                     # &nminit
+basic_state = "data/bs.1979.bin"
+kmo         = 1             # first month (1-based)
+navg        = 3             # months to average
+zonal_mean  = false
+
+[forcing]                   # &nmfrc / &nmsfrc
+mjo    = "data/frc.phase1.bin"
+spinup = 435               # calls holding day 1 before the forcing marches
+scale  = 1.0
+south_first = false        # forcing rows are north-first by default
+
+[output]                    # &nmhist / &nmhisd
+out           = "out/isca.1979.phase1"
+netcdf        = false
+interval_days = 1.0
+instantaneous = false       # false -> daily time-averaged history
+
+[backend]
+device = "auto"             # "auto" | "gpu" | "cpu"

@@ -21,11 +21,13 @@ Quick start
 from .backend import asnumpy, device_name, gpu_available, resolve
 from .constants import IMAX, JMAX, KMAX, NMAX
 from .model import LBM, Config
+from .namelist import RunSpec, load_namelist
 from .spectral import Spectral
 from .state import State
 from .vertical import VerticalGrid
 
 __all__ = ["Spectral", "VerticalGrid", "LBM", "Config", "State",
+           "RunSpec", "load_namelist",
            "IMAX", "JMAX", "KMAX", "NMAX",
            "gpu_available", "device_name", "asnumpy", "resolve"]
 __version__ = "0.1.0-isca"

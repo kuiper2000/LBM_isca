@@ -152,6 +152,64 @@ model.run(mjo_forcing=MJOForcing("data/frc.phase1.bin"),
 u200 = model.ga.u[:, :, 12]        # response at sigma ~ 0.175
 ```
 
+## Configure a run from a file (the namelist)
+
+The Watanabe–Kimoto LBM drives every run from a `SYSIN` file — a stack of
+Fortran `&nmXXX … &end` groups that fully specify the integration. PyLBM-Isca
+keeps that tradition in a modern, dependency-light form: a single **TOML** (or
+**YAML**) file where each table maps one-to-one onto the original namelist
+group. Point the driver at it with `--namelist`:
+
+```bash
+python run_lbm.py --namelist examples/mjo_phase1.toml
+```
+
+```toml
+# examples/mjo_phase1.toml  (abridged)
+[time]                      # &nmtime / &nmdelt
+ndays  = 35
+delt   = 1200.0            # time step [s] (= 20 min)
+
+[damp]                      # &nmdamp  — per-level Rayleigh drag, k=0 at bottom
+ray0   = 30.0
+sponge = true
+ddragv = [0.5, 0.5, 0.5, 5, 15, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 0.5, 0.5]
+
+[input]                     # &nminit
+basic_state = "data/bs.1979.bin"
+[forcing]                   # &nmfrc / &nmsfrc
+mjo    = "data/frc.phase1.bin"
+spinup = 435
+[output]                    # &nmhist / &nmhisd
+out    = "out/isca.1979.phase1"
+```
+
+| table | Fortran group | knobs |
+|---|---|---|
+| `[time]`        | `&nmtime` / `&nmdelt` | `ndays`, `delt`, `inistp` |
+| `[hdif]`        | `&nmhdif` | `order`, `tefold`, `tunit` (∇⁴ diffusion) |
+| `[damp]`        | `&nmdamp` | per-level `ddragv/d/t`, `tunit`, `sponge`, `ray0` |
+| `[vdif]`        | `&nmvdif` | per-level `vdifv/d/t/q` |
+| `[integration]` | — | `robert`, `strictly_linear`, `nmem` |
+| `[input]`       | `&nminit` | `basic_state`, `kmo`, `navg`, `zonal_mean` |
+| `[forcing]`     | `&nmfrc` / `&nmsfrc` | `mjo`, `steady`, `case`, `spinup`, `scale`, `south_first` |
+| `[output]`      | `&nmhist` / `&nmhisd` | `out`, `netcdf`, `interval_days`, `instantaneous` |
+| `[backend]`     | — | `device` |
+
+Any value you omit keeps the model default, and **any command-line flag still
+overrides the file** (`--days 10 --device cpu`), so the namelist and the
+equivalent command line produce identical runs. Unknown sections or keys raise
+immediately, as the Fortran reader did. The file reaches knobs the CLI never
+exposed — the per-level `ddrag*`/`vdif*` profiles, `hdif_*`, `ray0`, `nmem`. In
+a notebook, build a `Config` straight from the file:
+
+```python
+from pylbm_isca import Config
+cfg = Config.from_namelist("examples/mjo_phase1.toml")   # integration knobs
+```
+
+(YAML needs `pip install pyyaml`; TOML uses the standard-library `tomllib`.)
+
 ## Layout
 
 ```
@@ -162,6 +220,7 @@ pylbm_isca/dynamics.py    linearised Isca tendencies
 pylbm_isca/integrator.py  semi-implicit leapfrog + damping
 pylbm_isca/state.py       grid state, grid<->spectral, Robert-Asselin filter
 pylbm_isca/model.py       configuration and the time loop
+pylbm_isca/namelist.py    TOML/YAML run-configuration loader (the namelist)
 pylbm_isca/basicstate.py  pressure-level -> sigma basic state
 pylbm_isca/forcing.py     steady and MJO forcing readers
 pylbm_isca/output.py      GrADS / netCDF writers

@@ -36,8 +36,13 @@ def build_parser():
                     "T42 L20 moist, dynamics-only (GPLv3)",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+    g = p.add_argument_group("namelist")
+    g.add_argument("--namelist", default=None,
+                   help="TOML/YAML run-configuration file (the PyLBM-Isca "
+                        "namelist); any CLI flag given still overrides it")
+
     g = p.add_argument_group("input")
-    g.add_argument("--basic-state", required=True,
+    g.add_argument("--basic-state", default=None,
                    help="ERA5 pressure-level basic state, e.g. bs.1979.bin")
     g.add_argument("--kmo", type=int, default=1, help="first month (1-based)")
     g.add_argument("--navg", type=int, default=3, help="months to average")
@@ -80,7 +85,21 @@ def build_parser():
 
 
 def main(argv=None):
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    # The namelist (TOML/YAML) supplies defaults; re-parse so any flag given on
+    # the command line still overrides the file -- "command line beats SYSIN".
+    spec = None
+    if args.namelist:
+        from pylbm_isca.namelist import load_namelist
+        spec = load_namelist(args.namelist)
+        parser.set_defaults(**spec.arg_defaults)
+        args = parser.parse_args(argv)
+
+    if not args.basic_state:
+        parser.error("a basic state is required "
+                     "(--basic-state FILE or [input] basic_state in --namelist)")
 
     sp = Spectral(device=args.device)
     vg = VerticalGrid(device=args.device)
@@ -132,11 +151,13 @@ def main(argv=None):
             steady = regrid_steady_forcing(
                 steady, source_spectral(f_nlon, f_nlat), sp)
 
-    cfg = Config(delt=args.delt, inistp=args.inistp, ndays=args.days,
-                 robert=args.robert, sponge=not args.no_sponge,
-                 strictly_linear=args.strictly_linear,
-                 out_interval_days=args.out_interval,
-                 time_average=not args.instantaneous)
+    cfg_kw = dict(spec.config_extra) if spec else {}
+    cfg_kw.update(delt=args.delt, inistp=args.inistp, ndays=args.days,
+                  robert=args.robert, sponge=not args.no_sponge,
+                  strictly_linear=args.strictly_linear,
+                  out_interval_days=args.out_interval,
+                  time_average=not args.instantaneous)
+    cfg = Config(**cfg_kw)
     model = LBM(bs, sp, vg, cfg)
 
     os.makedirs(os.path.dirname(os.path.abspath(args.out)) or ".", exist_ok=True)

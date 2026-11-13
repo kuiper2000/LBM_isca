@@ -73,6 +73,18 @@ class Config:
     def steps_per_day(self):
         return int(round(86400.0 / self.delt))
 
+    @classmethod
+    def from_namelist(cls, path):
+        """Build a :class:`Config` from a TOML/YAML namelist file.
+
+        Only the integration knobs (``[time]``, ``[hdif]``, ``[damp]``,
+        ``[vdif]``, ``[integration]``, ``[backend]``) affect the Config; the
+        ``[input]``/``[forcing]``/``[output]`` tables are for the ``run_lbm``
+        driver and are ignored here.  See :mod:`pylbm_isca.namelist`.
+        """
+        from .namelist import load_namelist
+        return load_namelist(path).build_config()
+
 
 class LBM:
     """Linear baroclinic model, T42 L20, dry."""
